@@ -1,0 +1,1012 @@
+<title>MDfW</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Macbook Drivers for Windows: enter your Mac's model identifier and download the matching Windows driver package straight from Apple.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@400..900&family=Silkscreen:wght@400;700&family=VT323&display=swap">
+<style>
+/* Layout: monochrome terminal. Same structure as before; every shape sits on a 3px pixel grid,
+   drawn with vector fonts, clip-paths and gradients so it stays sharp at any zoom.
+   Deliberately single-theme (black terminal), so no light variant. */
+:root {
+  --bg: #000000;
+  --fg: #f4f4f4;
+  --dim: #8e8e8e;
+  --faint: #3b3b3b;
+  --panel: #0b0b0b;
+  --grid: #161616;
+  --font-display: "Doto", "VT323", ui-monospace, Menlo, Consolas, monospace;
+  --font-body: "VT323", ui-monospace, Menlo, Consolas, monospace;
+  --font-label: "Silkscreen", "VT323", ui-monospace, Menlo, monospace;
+  --p: 3px; /* one "pixel" */
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+::selection { background: var(--fg); color: var(--bg); }
+body {
+  background-color: var(--bg);
+  /* dot-matrix screen: vector dots, crisp at every zoom level */
+  background-image: radial-gradient(circle at center, var(--grid) 0.9px, transparent 1.2px);
+  background-size: 6px 6px;
+  color: var(--fg);
+  font: 400 21px/1.35 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+a { color: var(--fg); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+a:hover { background: var(--fg); color: var(--bg); text-decoration: none; }
+:focus-visible { outline: var(--p) solid var(--fg); outline-offset: var(--p); }
+code, kbd, .mono { font-family: var(--font-body); font-size: 1em; }
+code { background: var(--faint); padding: 0 .25em; }
+kbd { border: 2px solid var(--dim); padding: 0 .3em; white-space: nowrap; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.05; font-weight: 900; }
+h3 { font-family: var(--font-label); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+p { margin: 0; }
+
+/* stepped "pixel" corners: one grid unit notched out of each corner */
+.px, .tool, .way, .code, .callout, .flow, .btn, .chip, .tree, .readout, .result, .tab, .toast, .steps > li::before {
+  clip-path: polygon(0 var(--p), var(--p) var(--p), var(--p) 0, calc(100% - var(--p)) 0, calc(100% - var(--p)) var(--p), 100% var(--p), 100% calc(100% - var(--p)), calc(100% - var(--p)) calc(100% - var(--p)), calc(100% - var(--p)) 100%, var(--p) 100%, var(--p) calc(100% - var(--p)), 0 calc(100% - var(--p)));
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- top bar ---------- */
+.bar { border-bottom: var(--p) solid var(--fg); background: var(--bg); }
+.bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 12px; }
+.brand { display: flex; align-items: baseline; gap: 12px; text-decoration: none; color: var(--fg); }
+.brand:hover { background: none; color: var(--fg); }
+.brand b { font: 900 30px/1 var(--font-display); }
+.brand b::after { content: ""; display: inline-block; width: .5em; height: .8em; margin-left: 4px; background: var(--fg); vertical-align: -0.05em; animation: blink 1.1s steps(1) infinite; }
+.brand span { font: 400 12px/1 var(--font-label); color: var(--dim); text-transform: uppercase; }
+.bar nav { display: flex; gap: 4px; font: 400 12px/1 var(--font-label); text-transform: uppercase; }
+.bar nav a { color: var(--dim); text-decoration: none; padding: 6px 8px; }
+.bar nav a:hover { color: var(--bg); background: var(--fg); }
+@media (max-width: 640px) { .bar nav { display: none; } }
+
+/* ---------- hero + tool ---------- */
+.hero .wrap {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(28px, 5vw, 64px); align-items: start; padding-block: clamp(36px, 6vw, 72px) 52px;
+}
+@media (max-width: 860px) { .hero .wrap { grid-template-columns: minmax(0, 1fr); } }
+.eyebrow { font: 400 12px/1.4 var(--font-label); text-transform: uppercase; color: var(--dim); }
+.eyebrow::before { content: "> "; color: var(--fg); }
+.hero h1 { font-size: clamp(40px, 5.6vw, 66px); margin-top: 18px; letter-spacing: -.01em; }
+.hero h1 em { font-style: normal; background: var(--fg); color: var(--bg); padding: 0 .12em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.lede { margin-top: 22px; font-size: 23px; color: var(--dim); max-width: 32em; }
+.lede code { color: var(--fg); }
+.facts { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 20px; color: var(--dim); }
+.facts strong { color: var(--fg); font-weight: 400; font-variant-numeric: tabular-nums; }
+.facts strong::before { content: "["; color: var(--dim); }
+.facts strong::after { content: "]"; color: var(--dim); }
+
+.tool { background: var(--bg); border: var(--p) solid var(--fg); }
+.tool-head {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 9px 16px; background: var(--fg); color: var(--bg);
+  font: 700 12px/1.2 var(--font-label); text-transform: uppercase;
+}
+.tool-head span:first-child::before { content: "■ "; }
+.tool-body { padding: 22px 18px 20px; display: grid; gap: 14px; }
+.tool label { font: 700 13px/1.2 var(--font-label); text-transform: uppercase; }
+.field {
+  display: flex; align-items: center; gap: 10px;
+  border: var(--p) solid var(--dim); background: var(--panel);
+  padding: 2px 4px 2px 14px;
+}
+.field:focus-within { border-color: var(--fg); }
+.prompt { font: 400 34px/1 var(--font-body); color: var(--dim); }
+.field:focus-within .prompt { color: var(--fg); }
+.field input {
+  flex: 1; min-width: 0; border: 0; background: transparent; color: var(--fg); outline: none;
+  font: 400 clamp(28px, 3.4vw, 36px)/1.3 var(--font-body); padding: 8px 0;
+  caret-color: var(--fg); caret-shape: block;
+}
+.field input::placeholder { color: var(--faint); }
+.clear {
+  border: 0; background: none; color: var(--dim); cursor: pointer; font: 400 14px/1 var(--font-label);
+  padding: 10px 10px; text-transform: uppercase;
+}
+.clear:hover { background: var(--fg); color: var(--bg); }
+.hint { font-size: 19px; color: var(--dim); }
+
+.result { padding: 16px; display: grid; gap: 14px; border: var(--p) solid var(--faint); background: var(--panel); }
+.result[data-state="ok"] { border-color: var(--fg); }
+.result[data-state="warn"] {
+  border-color: var(--dim);
+  /* 1-unit dither stripe across the top marks a warning without colour */
+  background:
+    repeating-linear-gradient(90deg, var(--dim) 0 var(--p), transparent var(--p) calc(var(--p) * 2)) top left / 100% var(--p) no-repeat,
+    var(--panel);
+}
+.status { display: flex; align-items: center; gap: 12px; font: 700 14px/1.3 var(--font-label); text-transform: uppercase; }
+.dot { flex: none; font: 700 12px/1 var(--font-label); padding: 5px 7px; border: 2px solid var(--dim); color: var(--dim); }
+.dot::before { content: "..."; }
+.result[data-state="ok"] .dot { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+.result[data-state="ok"] .dot::before { content: "OK"; }
+.result[data-state="warn"] .dot { border-color: var(--fg); color: var(--fg); }
+.result[data-state="warn"] .dot::before { content: "!!"; }
+.result p { font-size: 19px; color: var(--dim); }
+.spec { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; border-top: 2px dashed var(--faint); padding-top: 12px; }
+.spec div { min-width: 0; }
+.spec dt { font: 400 10px/1.2 var(--font-label); text-transform: uppercase; color: var(--dim); }
+.spec dd { margin: 4px 0 0; font: 400 26px/1.1 var(--font-body); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+@media (max-width: 420px) { .spec { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  font: 700 14px/1 var(--font-label); text-transform: uppercase; text-decoration: none; cursor: pointer;
+  padding: 16px 20px; border: var(--p) solid var(--fg);
+}
+.btn-primary { background: var(--fg); color: var(--bg); }
+.btn-primary:hover {
+  background-color: var(--bg); color: var(--fg);
+  background-image: radial-gradient(circle at center, var(--faint) 1px, transparent 1.4px); background-size: 6px 6px;
+}
+.btn-ghost { background: var(--bg); color: var(--fg); border-color: var(--dim); padding: 14px 16px; font-size: 12px; }
+.btn-ghost:hover { border-color: var(--fg); background: var(--fg); color: var(--bg); }
+.btn[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+.btn svg { width: 21px; height: 21px; shape-rendering: crispEdges; }
+.sugg { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: 400 20px/1 var(--font-body); padding: 6px 10px 7px; cursor: pointer;
+  border: 2px solid var(--faint); background: var(--bg); color: var(--fg);
+}
+.chip:hover { border-color: var(--fg); }
+.tool-foot { padding: 11px 18px; border-top: 2px dashed var(--faint); font-size: 18px; color: var(--dim); }
+
+/* ---------- sections ---------- */
+section.block { padding-block: 60px; position: relative; }
+section.block::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: var(--p);
+  background: repeating-linear-gradient(90deg, var(--dim) 0 var(--p), transparent var(--p) calc(var(--p) * 3));
+}
+.sec-head { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 24px; margin-bottom: 30px; }
+.sec-head .num { font: 900 96px/0.8 var(--font-display); color: var(--fg); }
+.sec-head h2 { font-size: clamp(32px, 3.8vw, 44px); }
+.sec-head h2 code { background: none; padding: 0; font-family: inherit; text-decoration: underline; text-decoration-thickness: var(--p); text-underline-offset: 6px; }
+.sec-head p { margin-top: 12px; color: var(--dim); max-width: 38em; }
+.sec-head p code { color: var(--fg); }
+.sec-body { margin-left: 144px; min-width: 0; }
+@media (max-width: 760px) {
+  .sec-head { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .sec-head .num { font-size: 64px; }
+  .sec-body { margin-left: 0; }
+}
+
+.ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 900px) { .ways { grid-template-columns: minmax(0, 1fr); } }
+.way { background: var(--bg); border: var(--p) solid var(--faint); padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.way:hover { border-color: var(--dim); }
+.way h3 { font-size: 15px; }
+.way .tag { font: 400 10px/1.2 var(--font-label); text-transform: uppercase; color: var(--dim); }
+.way ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; font-size: 20px; }
+.way ol li::marker { color: var(--dim); }
+
+.readout {
+  background: var(--panel); border: 2px solid var(--faint); padding: 10px 12px;
+  font: 400 18px/1.45 var(--font-body); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 12px;
+}
+.readout dt { color: var(--dim); text-align: right; }
+.readout dd { margin: 0; overflow-wrap: anywhere; }
+.readout .hl { background: var(--fg); color: var(--bg); padding: 0 4px; margin-left: -4px; }
+
+.code { position: relative; background: var(--panel); color: var(--fg); border: 2px solid var(--faint); font: 400 19px/1.4 var(--font-body); min-width: 0; }
+.code pre { margin: 0; padding: 12px 14px; overflow-x: auto; white-space: pre; font: inherit; }
+.code .c { color: var(--dim); }
+.code .copy {
+  position: absolute; top: 6px; right: 6px; font: 400 10px/1 var(--font-label); text-transform: uppercase;
+  background: var(--bg); color: var(--fg); border: 2px solid var(--dim); padding: 6px 7px; cursor: pointer;
+}
+.code .copy:hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.code.has-copy pre { padding-right: 76px; }
+.note { font-size: 19px; color: var(--dim); }
+.callout {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start;
+  border: var(--p) solid var(--fg); background: var(--bg); padding: 14px 16px; font-size: 20px; margin-top: 22px;
+}
+.callout b { font-weight: 400; color: var(--fg); }
+.callout p { color: var(--dim); }
+.callout .dot { border-color: var(--fg); color: var(--fg); margin-top: 2px; }
+.callout .dot::before { content: "!!"; }
+
+.flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: var(--p) solid var(--faint); background: var(--bg); }
+.flow > div { padding: 18px 18px; border-right: var(--p) solid var(--faint); min-width: 0; }
+.flow > div:last-child { border-right: 0; }
+.flow b { display: block; font: 700 14px/1.3 var(--font-label); text-transform: uppercase; margin-bottom: 8px; }
+.flow p { font-size: 19px; color: var(--dim); }
+@media (max-width: 760px) { .flow { grid-template-columns: minmax(0, 1fr); } .flow > div { border-right: 0; border-bottom: var(--p) solid var(--faint); } .flow > div:last-child { border-bottom: 0; } }
+
+.tabs { display: flex; gap: 8px; margin-bottom: 22px; overflow-x: auto; padding-bottom: 2px; }
+.tab {
+  font: 700 12px/1 var(--font-label); text-transform: uppercase; background: var(--bg); color: var(--dim); cursor: pointer;
+  padding: 11px 12px; border: 2px solid var(--faint); white-space: nowrap;
+}
+.tab::before { content: "[ "; } .tab::after { content: " ]"; }
+.tab:hover { color: var(--fg); border-color: var(--dim); }
+.tab[aria-selected="true"] { color: var(--bg); background: var(--fg); border-color: var(--fg); }
+.panel { display: grid; gap: 18px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; counter-reset: s; }
+.steps > li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; counter-increment: s; }
+.steps > li::before {
+  content: counter(s); width: 33px; height: 33px; display: grid; place-items: center;
+  font: 700 13px/1 var(--font-label); background: var(--fg); color: var(--bg);
+}
+.steps > li > div { display: grid; gap: 6px; min-width: 0; }
+.steps b { font: 700 14px/1.3 var(--font-label); text-transform: uppercase; padding-top: 6px; }
+.steps p { color: var(--dim); }
+.tree { font: 400 19px/1.4 var(--font-body); background: var(--bg); border: var(--p) solid var(--faint); padding: 12px 16px; overflow-x: auto; white-space: pre; }
+.tree b { font-weight: 400; background: var(--fg); color: var(--bg); padding: 0 4px; }
+
+.families { display: grid; gap: 22px; }
+.family { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 16px; align-items: start; }
+.family h3 { font-size: 13px; padding-top: 6px; }
+.family h3 small { display: block; margin-top: 6px; font: 400 17px/1.2 var(--font-body); color: var(--dim); text-transform: none; }
+@media (max-width: 600px) { .family { grid-template-columns: minmax(0, 1fr); gap: 8px; } }
+.chip.on { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+
+footer { position: relative; padding-block: 30px 44px; font-size: 18px; color: var(--dim); border-top: var(--p) solid var(--fg); }
+footer .wrap { display: grid; gap: 8px; }
+footer p::before { content: "// "; color: var(--faint); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--fg); color: var(--bg); padding: 10px 16px; font: 700 12px/1 var(--font-label); text-transform: uppercase;
+  opacity: 0; transition: opacity .15s steps(2); pointer-events: none;
+}
+.toast.show { opacity: 1; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  html { scroll-behavior: auto; }
+}
+/* clip-path hides outer outlines, so notched controls draw focus inside themselves */
+.btn:focus-visible, .chip:focus-visible, .tab:focus-visible, .copy:focus-visible { outline: 2px solid currentColor; outline-offset: -7px; }
+
+/* ---------- language switcher in the top bar ---------- */
+.bar-right { display: flex; align-items: center; gap: 14px; }
+.langs { display: flex; gap: 2px; }
+.langs button {
+  font: 700 11px/1 var(--font-label); text-transform: uppercase; cursor: pointer;
+  background: var(--bg); color: var(--dim); border: 2px solid transparent; padding: 6px 6px;
+}
+.langs button:hover { color: var(--fg); border-color: var(--faint); }
+.langs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.langs button:focus-visible { outline: 2px solid currentColor; outline-offset: -5px; }
+
+/* ---------- first-visit intro: pixel robot ---------- */
+html.intro-open { overflow: hidden; }
+.intro {
+  position: fixed; inset: 0; z-index: 50; overflow-y: auto;
+  background-color: var(--bg);
+  background-image: radial-gradient(circle at center, var(--grid) 0.9px, transparent 1.2px);
+  background-size: 6px 6px;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  display: grid; grid-template-rows: auto 1fr auto;
+}
+.intro.closing { animation: crt-off .5s steps(6, end) forwards; }
+@keyframes crt-off {
+  0% { transform: none; filter: none; }
+  55% { transform: scale(1, .006); filter: brightness(3); }
+  100% { transform: scale(0, .006); filter: brightness(3); }
+}
+.intro-top { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.boot { font: 400 17px/1.35 var(--font-body); color: var(--dim); margin: 0; padding: 0; list-style: none; }
+.boot li { visibility: hidden; animation: show-line 0s linear forwards; }
+.boot li:nth-child(1) { animation-delay: .05s; }
+.boot li:nth-child(2) { animation-delay: .25s; }
+.boot li:nth-child(3) { animation-delay: .45s; }
+.boot li:nth-child(4) { animation-delay: .65s; color: var(--fg); }
+@keyframes show-line { to { visibility: visible; } }
+.intro-skip { flex: none; }
+.intro-skip kbd { border-color: currentColor; font: 400 11px/1 var(--font-label); padding: 2px 4px; margin-left: 4px; }
+
+.stage {
+  align-self: center; justify-self: center; width: min(100%, 1000px);
+  display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(20px, 5vw, 60px); align-items: center;
+  padding-block: 24px;
+}
+@media (max-width: 760px) { .stage { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: 18px; } }
+
+.bot { width: min(100%, 360px, 48vh); justify-self: center; padding-right: 8%; }
+.bot svg {
+  display: block; width: 100%; height: auto; overflow: visible; shape-rendering: crispEdges;
+  animation: bot-boot .7s steps(10, end) .15s both, bob 1.2s step-end 1s infinite;
+}
+@keyframes bot-boot { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes bob { 0% { transform: translateY(0); } 50% { transform: translateY(-2.4%); } }
+.bot .fg { fill: var(--fg); }
+.bot .bg { fill: var(--bg); }
+.bot .dm { fill: var(--dim); }
+.bot .fa { fill: var(--faint); }
+.bulb { animation: blink 1s step-end infinite; }
+.look { transition: transform .12s steps(1); }
+.eyes { transform-box: fill-box; transform-origin: center; animation: eye-blink 3.6s step-end infinite; }
+@keyframes eye-blink { 0% { transform: scaleY(1); } 92% { transform: scaleY(.34); } 96% { transform: scaleY(1); } }
+.eyes-h, .mouth-o, .bot.happy .eyes-n { visibility: hidden; }
+.bot.happy .eyes-h { visibility: visible; }
+.bot.talking .mouth-o { animation: talk .22s step-end infinite; }
+.bot.talking .mouth-c { animation: talk-c .22s step-end infinite; }
+@keyframes talk { 0% { visibility: visible; } 50% { visibility: hidden; } }
+@keyframes talk-c { 0% { visibility: hidden; } 50% { visibility: visible; } }
+.light { animation: blink 1.2s step-end infinite; }
+.light:nth-of-type(2) { animation-delay: .4s; }
+.light:nth-of-type(3) { animation-delay: .8s; }
+/* waving arm: three hand-drawn frames swapped in steps, no rotation, so pixels stay square */
+.arm-d, .arm-a, .arm-b { animation: 3.2s step-end infinite; }
+.arm-a { animation-name: frame-a; }
+.arm-b { animation-name: frame-b; }
+.arm-d { animation-name: frame-d; }
+@keyframes frame-a { 0% { visibility: visible; } 9% { visibility: hidden; } 18% { visibility: visible; } 27% { visibility: hidden; } 36% { visibility: visible; } 45%, 100% { visibility: hidden; } }
+@keyframes frame-b { 0% { visibility: hidden; } 9% { visibility: visible; } 18% { visibility: hidden; } 27% { visibility: visible; } 36%, 100% { visibility: hidden; } }
+@keyframes frame-d { 0% { visibility: hidden; } 45%, 100% { visibility: visible; } }
+.bot.happy svg { animation: hop .36s step-end infinite; }
+.bot.happy .arm-a, .bot.happy .arm-b { animation-duration: .5s; }
+.bot.happy .arm-d { visibility: hidden; animation: none; }
+@keyframes hop { 0% { transform: translateY(0); } 50% { transform: translateY(-6%); } }
+
+.talk { display: grid; gap: 22px; min-width: 0; }
+@media (max-width: 760px) { .talk { justify-items: center; } }
+.bubble-wrap { position: relative; width: 100%; animation: show-line 0s linear .75s both; visibility: hidden; }
+.bubble {
+  border: var(--p) solid var(--fg); background: var(--bg); padding: 18px 20px 20px;
+  clip-path: polygon(0 var(--p), var(--p) var(--p), var(--p) 0, calc(100% - var(--p)) 0, calc(100% - var(--p)) var(--p), 100% var(--p), 100% calc(100% - var(--p)), calc(100% - var(--p)) calc(100% - var(--p)), calc(100% - var(--p)) 100%, var(--p) 100%, var(--p) calc(100% - var(--p)), 0 calc(100% - var(--p)));
+}
+.bubble-who { font: 400 11px/1 var(--font-label); text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+.bubble-who::before { content: "■ "; color: var(--fg); }
+.bubble-text { font: 900 clamp(30px, 4.4vw, 50px)/1.08 var(--font-display); min-height: 2.16em; text-wrap: balance; }
+.cur { display: inline-block; width: .45em; height: .78em; background: var(--fg); margin-left: 4px; vertical-align: -0.04em; animation: blink 1s steps(1) infinite; }
+/* pixel tail pointing at the robot */
+.tail { position: absolute; left: -27px; top: 30px; width: 30px; height: 30px; shape-rendering: crispEdges; }
+@media (max-width: 760px) { .tail { left: 50%; top: auto; bottom: -27px; transform: translateX(-50%) rotate(-90deg); } }
+
+.pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; }
+.pick .btn { justify-content: space-between; padding: 16px 16px; font-size: 13px; opacity: 0; animation: pop .0s linear forwards; }
+.pick .btn:nth-child(1) { animation-delay: .9s; }
+.pick .btn:nth-child(2) { animation-delay: 1s; }
+.pick .btn:nth-child(3) { animation-delay: 1.1s; }
+.pick .btn:nth-child(4) { animation-delay: 1.2s; }
+@keyframes pop { to { opacity: 1; } }
+.pick .btn small { font: 400 18px/1 var(--font-body); color: inherit; opacity: .6; text-transform: none; }
+.pick .btn.chosen { background: var(--fg); color: var(--bg); }
+.intro-foot { text-align: center; font: 400 11px/1.4 var(--font-label); text-transform: uppercase; color: var(--faint); }
+@media (max-width: 600px) { .boot, .intro-skip kbd { display: none; } .intro-top { justify-content: end; } .intro-skip { padding: 10px 12px; } }
+@media (max-width: 420px) { .pick { grid-template-columns: minmax(0, 1fr); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .boot li, .bubble-wrap { visibility: visible; }
+  .pick .btn { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .arm-a, .arm-b { visibility: hidden; } }
+
+.replay { background: var(--bg); border: 2px solid var(--faint); padding: 4px 5px; cursor: pointer; color: var(--dim); display: grid; place-items: center; }
+.replay:hover { border-color: var(--fg); color: var(--fg); }
+.replay svg { width: 18px; height: 18px; shape-rendering: crispEdges; display: block; }
+</style>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top"><b>MDfW</b><span>Macbook Drivers for Windows</span></a>
+    <div class="bar-right">
+    <nav aria-label="Sections">
+      <a href="#find">Find your model</a>
+      <a href="#download">Download</a>
+      <a href="#extract">Extract</a>
+      <a href="#models">All models</a>
+    </nav>
+    <div class="langs" id="langs" role="group" aria-label="Language"></div>
+    <button class="replay" id="replay" type="button" aria-label="Show the robot again" title="Show the robot again"><svg viewBox="0 0 8 8" fill="currentColor" aria-hidden="true"><rect x="3" y="0" width="2" height="1"/><rect x="1" y="1" width="6" height="5"/><rect x="0" y="2" width="1" height="2"/><rect x="7" y="2" width="1" height="2"/><rect x="2" y="6" width="1" height="2"/><rect x="5" y="6" width="1" height="2"/><rect fill="var(--bg)" x="2" y="2" width="1" height="2"/><rect fill="var(--bg)" x="5" y="2" width="1" height="2"/><rect fill="var(--bg)" x="3" y="4" width="2" height="1"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Boot Camp Support Software · Intel Macs</p>
+        <h1>Windows drivers for your Mac, <em>without</em> Boot Camp Assistant.</h1>
+        <p class="lede">Type your Mac's model identifier and get the exact driver package Apple built for it. The file comes straight from Apple's servers. Unpack it, run <code>Setup.exe</code> in Windows, and your trackpad, keyboard, Wi‑Fi and audio work.</p>
+        <div class="facts">
+          <span><strong id="f-models">0</strong> <span>supported models</span></span>
+          <span><strong id="f-pkgs">0</strong> <span>driver packages</span></span>
+          <span><span>Package size</span> <strong>0.5–1 GB</strong></span>
+        </div>
+      </div>
+
+      <form class="tool" id="tool" autocomplete="off" novalidate>
+        <div class="tool-head"><span>Driver lookup</span><span id="tool-tag">Model identifier</span></div>
+        <div class="tool-body">
+          <label for="model">Your model identifier</label>
+          <div class="field">
+            <span class="prompt" aria-hidden="true">&gt;</span>
+            <input id="model" name="model" type="text" inputmode="text" spellcheck="false" autocapitalize="off"
+                   placeholder="MacBookPro14,3" aria-describedby="model-hint">
+            <button class="clear" type="button" id="clear" aria-label="Clear">Clr</button>
+          </div>
+          <p class="hint" id="model-hint">Letters, then two numbers with a comma, like <code>MacBookAir8,1</code>. <a href="#find">How to find it</a></p>
+
+          <div class="result" id="result" data-state="idle" aria-live="polite">
+            <div class="status"><span class="dot"></span><span id="r-title">Enter a model identifier</span></div>
+            <p id="r-text">The download button appears when your model is found.</p>
+            <dl class="spec" id="r-spec" hidden>
+              <div><dt>Package</dt><dd id="r-prod"></dd></div>
+              <div><dt>Released</dt><dd id="r-date"></dd></div>
+              <div><dt>Size</dt><dd id="r-size"></dd></div>
+            </dl>
+            <div class="sugg" id="r-sugg" hidden></div>
+            <div class="actions" id="r-actions" hidden>
+              <a class="btn btn-primary" id="dl" href="#" target="_blank" rel="noopener">
+                <svg viewBox="0 0 7 7" fill="currentColor" aria-hidden="true"><rect x="3" y="0" width="1" height="4"/><rect x="1" y="2" width="1" height="1"/><rect x="5" y="2" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/><rect x="4" y="3" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/><rect x="0" y="6" width="7" height="1"/></svg>
+                <span>Download drivers</span>
+              </a>
+              <button class="btn btn-ghost" type="button" id="copy-url">Copy link</button>
+            </div>
+          </div>
+        </div>
+        <div class="tool-foot">Downloads <code>BootCampESD.pkg</code> directly from <span class="mono">swcdn.apple.com</span>. Nothing passes through MDfW.</div>
+      </form>
+    </div>
+  </section>
+
+  <section class="block" id="find">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="num">1</div>
+        <div>
+          <h2>Find your model identifier</h2>
+          <p>Every Mac has a short code like <code>MacBookPro14,3</code>. It's different from the marketing name, “MacBook Pro (15‑inch, 2017)”, and only the code tells you exactly which drivers fit. Pick whichever way is easiest.</p>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="ways">
+          <div class="way">
+            <span class="tag">macOS · no typing</span>
+            <h3>System Information</h3>
+            <ol>
+              <li>Hold <kbd>⌥ Option</kbd> and click the Apple menu.</li>
+              <li>Click <b>System Information…</b></li>
+              <li>Under <b>Hardware</b>, read <b>Model Identifier</b>.</li>
+            </ol>
+            <dl class="readout" aria-label="Example System Information readout">
+              <dt>Model Name:</dt><dd>MacBook Pro</dd>
+              <dt>Model Identifier:</dt><dd><span class="hl">MacBookPro14,3</span></dd>
+              <dt>Processor Name:</dt><dd>Quad-Core Intel Core i7</dd>
+            </dl>
+          </div>
+          <div class="way">
+            <span class="tag">macOS · Terminal</span>
+            <h3>One command</h3>
+            <ol>
+              <li>Open <b>Terminal</b> (Spotlight: <kbd>⌘ Space</kbd>, type “Terminal”).</li>
+              <li>Paste this and press <kbd>Return</kbd>:</li>
+            </ol>
+            <div class="code has-copy"><pre>sysctl -n hw.model</pre><button class="copy" type="button" data-copy="sysctl -n hw.model">Copy</button></div>
+            <p class="note">It prints the identifier, for example <code>MacBookPro14,3</code>.</p>
+          </div>
+          <div class="way">
+            <span class="tag">Already in Windows</span>
+            <h3>PowerShell</h3>
+            <ol>
+              <li>Right-click Start and open <b>Terminal</b> or <b>PowerShell</b>.</li>
+              <li>Paste this and press <kbd>Enter</kbd>:</li>
+            </ol>
+            <div class="code has-copy"><pre>(Get-CimInstance Win32_ComputerSystem).Model</pre><button class="copy" type="button" data-copy="(Get-CimInstance Win32_ComputerSystem).Model">Copy</button></div>
+            <p class="note">Windows reads the same code from the Mac's firmware.</p>
+          </div>
+        </div>
+        <div class="callout"><span class="dot"></span><p><b>Identifiers like <code>Mac14,2</code>, <code>MacBookAir10,1</code> or <code>MacBookPro17,1</code> mean Apple silicon (M1 or newer).</b> Those Macs can't run Boot Camp, so Apple never made Windows drivers for them. MDfW covers Intel Macs from 2006 to 2020.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="download">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="num">2</div>
+        <div>
+          <h2>Enter it and download</h2>
+          <p>Type the identifier into the <a href="#top">driver lookup</a> at the top, exactly as shown, comma included. Upper or lower case doesn't matter.</p>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="flow">
+          <div><b>Type the code</b><p>The lookup matches it against every Boot Camp package Apple has published, as soon as you type.</p></div>
+          <div><b>Press Download drivers</b><p>Your browser saves <code>BootCampESD.pkg</code> from Apple, usually to your Downloads folder.</p></div>
+          <div><b>Keep it on a USB stick</b><p>If Windows is already installed, put the file somewhere you can reach it from there.</p></div>
+        </div>
+        <p class="note" style="margin-top:14px">If several packages list your model, MDfW picks the newest one. That's the same choice Boot Camp Assistant makes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="extract">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="num">3</div>
+        <div>
+          <h2>Get <code>Setup.exe</code> out of the package</h2>
+          <p>The <code>.pkg</code> is a macOS installer, so Windows can't open it directly. The drivers sit three layers deep. Unpack them on whichever computer you have, then run <code>Setup.exe</code> from Windows.</p>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="tree" aria-label="What's inside the package">BootCampESD.pkg
+└─ Payload
+   └─ Library/Application Support/BootCamp/WindowsSupport.dmg
+      ├─ $WinPEDriver$/
+      └─ BootCamp/
+         ├─ Drivers/
+         └─ <b>Setup.exe</b>   <span>← run this in Windows</span></div>
+
+        <div style="height:28px"></div>
+        <div class="tabs" role="tablist" aria-label="Extraction method">
+          <button class="tab" role="tab" id="t-win" aria-controls="p-win" aria-selected="true">On Windows</button>
+          <button class="tab" role="tab" id="t-mac" aria-controls="p-mac" aria-selected="false" tabindex="-1">On a Mac</button>
+          <button class="tab" role="tab" id="t-py" aria-controls="p-py" aria-selected="false" tabindex="-1">Python script</button>
+        </div>
+
+        <div class="panel" role="tabpanel" id="p-win" aria-labelledby="t-win">
+          <ol class="steps">
+            <li><div><b>Install 7-Zip</b><p>It's free and opens Apple's package formats. Get it at <a href="https://www.7-zip.org" target="_blank" rel="noopener">7-zip.org</a>.</p></div></li>
+            <li><div><b>Unpack the package</b><p>Right-click <code>BootCampESD.pkg</code> › <b>7-Zip</b> › <b>Extract to "BootCampESD\"</b>.</p></div></li>
+            <li><div><b>Unpack the payload</b><p>In that folder, extract <code>Payload</code> the same way. If you then see a file named <code>Payload~</code>, extract that too. You end up with <code>Library\Application Support\BootCamp\WindowsSupport.dmg</code>.</p></div></li>
+            <li><div><b>Unpack the disk image</b><p>Extract <code>WindowsSupport.dmg</code>. You get the <code>BootCamp</code> and <code>$WinPEDriver$</code> folders.</p></div></li>
+            <li><div><b>Install</b><p>Open <code>BootCamp</code>, right-click <code>Setup.exe</code> › <b>Run as administrator</b>, and restart when it's done.</p></div></li>
+          </ol>
+          <p class="note">Prefer the command line? With 7-Zip installed, this does steps 2–4 in one go from the folder holding the package:</p>
+          <div class="code has-copy"><pre id="ps-cmd"><span class="c"># PowerShell</span>
+$7z = "$env:ProgramFiles\7-Zip\7z.exe"
+&amp; $7z x -y -obc BootCampESD.pkg
+&amp; $7z x -y -obc bc\Payload
+if (Test-Path bc\Payload~) { &amp; $7z x -y -obc bc\Payload~ }
+&amp; $7z x -y -oWindowsSupport (Get-ChildItem bc -Recurse -Filter WindowsSupport.dmg).FullName
+start WindowsSupport\BootCamp</pre><button class="copy" type="button" data-copy-from="ps-cmd">Copy</button></div>
+        </div>
+
+        <div class="panel" role="tabpanel" id="p-mac" aria-labelledby="t-mac" hidden>
+          <ol class="steps">
+            <li><div><b>Open Terminal and go to your Downloads</b>
+              <div class="code has-copy"><pre>cd ~/Downloads</pre><button class="copy" type="button" data-copy="cd ~/Downloads">Copy</button></div></div></li>
+            <li><div><b>Unpack the package and its payload</b><p>macOS includes everything needed.</p>
+              <div class="code has-copy"><pre id="mac-cmd">pkgutil --expand BootCampESD.pkg bc
+mkdir bc_files &amp;&amp; tar -xzf bc/Payload -C bc_files
+open "bc_files/Library/Application Support/BootCamp/WindowsSupport.dmg"</pre><button class="copy" type="button" data-copy-from="mac-cmd">Copy</button></div></div></li>
+            <li><div><b>Copy the drivers to a USB stick</b><p>A <b>WindowsSupport</b> disk opens in Finder. Copy its <code>BootCamp</code> and <code>$WinPEDriver$</code> folders to a USB stick formatted as <b>ExFAT</b> or <b>MS-DOS (FAT)</b>. Windows can't read Mac-formatted drives.</p></div></li>
+            <li><div><b>Install in Windows</b><p>Plug the stick in, open <code>BootCamp</code>, right-click <code>Setup.exe</code> › <b>Run as administrator</b>, and restart.</p></div></li>
+          </ol>
+        </div>
+
+        <div class="panel" role="tabpanel" id="p-py" aria-labelledby="t-py" hidden>
+          <p>This one script unpacks the package on any system. On a Mac it uses built-in tools. On Windows or Linux it uses 7-Zip. Save it as <code>mdfw_extract.py</code> next to the package, then run:</p>
+          <div class="code has-copy"><pre>python3 mdfw_extract.py BootCampESD.pkg WindowsSupport</pre><button class="copy" type="button" data-copy="python3 mdfw_extract.py BootCampESD.pkg WindowsSupport">Copy</button></div>
+          <p class="note">It prints the path to <code>Setup.exe</code> when it's done. Python 3.8 or newer, no extra packages.</p>
+          <div class="code has-copy"><pre id="py-src">__EXTRACT_PY__</pre><button class="copy" type="button" data-copy-from="py-src">Copy script</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="models">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="num" aria-hidden="true">*</div>
+        <div>
+          <h2>Every supported model</h2>
+          <p>Click an identifier to look it up. Within each family, a higher first number usually means a newer Mac.</p>
+        </div>
+      </div>
+      <div class="sec-body"><div class="families" id="families"></div></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>MDfW is an independent project and is not affiliated with or endorsed by Apple. Mac, MacBook and Boot Camp are trademarks of Apple Inc.</p>
+    <p>The model list was built from Apple's public software update catalog on __BUILD_DATE__. Every download link points to Apple's own servers.</p>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status"></div>
+
+<div class="intro" id="intro" role="dialog" aria-modal="true" aria-label="Choose a language" hidden>
+  <div class="intro-top">
+    <ul class="boot" aria-hidden="true">
+      <li>MDFW BIOS v0.2.6</li>
+      <li>READING APPLE CATALOG ....... OK</li>
+      <li>INDEXING MODELS ............. __N_MODELS__</li>
+      <li>&gt; HELLO, HUMAN</li>
+    </ul>
+    <button class="btn btn-ghost intro-skip" type="button" id="intro-skip"><span id="skip-label">Skip</span> → English <kbd>Esc</kbd></button>
+  </div>
+
+  <div class="stage">
+    <div class="bot" id="bot">
+      <svg viewBox="-2 0 30 30" aria-hidden="true">
+        <!-- antenna -->
+        <rect class="fg" x="11" y="2" width="2" height="3"/>
+        <rect class="fg bulb" x="10" y="0" width="4" height="2"/>
+        <!-- ears -->
+        <rect class="dm" x="2" y="8" width="2" height="5"/>
+        <rect class="dm" x="20" y="8" width="2" height="5"/>
+        <!-- head -->
+        <rect class="fg" x="5" y="5" width="14" height="11"/>
+        <rect class="fg" x="4" y="6" width="16" height="9"/>
+        <g class="look" id="look">
+          <g class="eyes eyes-n">
+            <rect class="bg" x="7" y="8" width="3" height="3"/>
+            <rect class="bg" x="14" y="8" width="3" height="3"/>
+          </g>
+          <g class="eyes-h">
+            <rect class="bg" x="7" y="10" width="1" height="1"/><rect class="bg" x="8" y="9" width="1" height="1"/><rect class="bg" x="9" y="10" width="1" height="1"/>
+            <rect class="bg" x="14" y="10" width="1" height="1"/><rect class="bg" x="15" y="9" width="1" height="1"/><rect class="bg" x="16" y="10" width="1" height="1"/>
+          </g>
+        </g>
+        <rect class="dm" x="5" y="12" width="1" height="1"/>
+        <rect class="dm" x="18" y="12" width="1" height="1"/>
+        <rect class="bg mouth-c" x="9" y="13" width="6" height="1"/>
+        <g class="mouth-o"><rect class="bg" x="9" y="12" width="6" height="2"/><rect class="dm" x="10" y="13" width="4" height="1"/></g>
+        <!-- neck + body -->
+        <rect class="dm" x="10" y="16" width="4" height="1"/>
+        <rect class="fg" x="7" y="17" width="10" height="8"/>
+        <rect class="fg" x="6" y="18" width="12" height="6"/>
+        <rect class="bg" x="8" y="19" width="8" height="4"/>
+        <rect class="fg light" x="9" y="20" width="1" height="1"/>
+        <rect class="fg light" x="11" y="20" width="1" height="1"/>
+        <rect class="fg light" x="13" y="20" width="1" height="1"/>
+        <rect class="fa" x="9" y="21" width="6" height="1"/>
+        <!-- left arm -->
+        <rect class="fg" x="5" y="18" width="1" height="2"/>
+        <rect class="fg" x="3" y="18" width="2" height="5"/>
+        <rect class="fg" x="2" y="23" width="3" height="2"/>
+        <!-- right arm: down / wave A / wave B -->
+        <rect class="fg" x="18" y="18" width="1" height="2"/>
+        <g class="arm-d"><rect class="fg" x="19" y="18" width="2" height="5"/><rect class="fg" x="19" y="23" width="3" height="2"/></g>
+        <g class="arm-a"><rect class="fg" x="19" y="17" width="2" height="2"/><rect class="fg" x="21" y="15" width="2" height="2"/><rect class="fg" x="22" y="12" width="2" height="3"/><rect class="fg" x="22" y="9" width="3" height="3"/></g>
+        <g class="arm-b"><rect class="fg" x="19" y="17" width="2" height="2"/><rect class="fg" x="21" y="16" width="2" height="2"/><rect class="fg" x="23" y="14" width="2" height="2"/><rect class="fg" x="24" y="11" width="3" height="3"/></g>
+        <!-- legs -->
+        <rect class="fg" x="8" y="25" width="3" height="2"/>
+        <rect class="fg" x="13" y="25" width="3" height="2"/>
+        <rect class="fg" x="7" y="27" width="4" height="1"/>
+        <rect class="fg" x="13" y="27" width="4" height="1"/>
+        <!-- dithered shadow -->
+        <g class="fa"><rect x="5" y="29" width="1" height="1"/><rect x="7" y="29" width="1" height="1"/><rect x="9" y="29" width="1" height="1"/><rect x="11" y="29" width="1" height="1"/><rect x="13" y="29" width="1" height="1"/><rect x="15" y="29" width="1" height="1"/><rect x="17" y="29" width="1" height="1"/></g>
+      </svg>
+    </div>
+
+    <div class="talk">
+      <div class="bubble-wrap">
+        <svg class="tail" viewBox="0 0 5 5" aria-hidden="true"><rect fill="var(--fg)" x="0" y="2" width="2" height="1"/><rect fill="var(--fg)" x="2" y="1" width="2" height="3"/><rect fill="var(--fg)" x="4" y="0" width="1" height="5"/></svg>
+      <div class="bubble">
+        <p class="bubble-who">MDFW-BOT</p>
+        <p class="bubble-text" aria-live="polite"><span id="say"></span><span class="cur" aria-hidden="true"></span></p>
+      </div>
+      </div>
+      <div class="pick" id="pick"></div>
+    </div>
+  </div>
+
+  <p class="intro-foot">Press 1–4 to choose · Esc for English</p>
+</div>
+
+<script>
+const MODELS = __MODELS_JSON__;
+const I18N = __I18N_JSON__;
+const LANGS = __LANGS_JSON__;
+const LANG_KEY = "mdfw.lang";
+
+let lang = "en";
+const t = (key, vars) => {
+  const e = I18N[key] || {};
+  let s = e[lang] ?? e.en ?? key;
+  for (const k in vars || {}) s = s.replace("{" + k + "}", vars[k]);
+  return s;
+};
+const store = {
+  get() { try { return localStorage.getItem(LANG_KEY); } catch { return null; } },
+  set(v) { try { localStorage.setItem(LANG_KEY, v); } catch {} },
+};
+
+const byLower = new Map(Object.keys(MODELS).map(k => [k.toLowerCase(), k]));
+const $ = id => document.getElementById(id);
+const input = $("model"), result = $("result");
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+$("f-models").textContent = Object.keys(MODELS).length;
+$("f-pkgs").textContent = new Set(Object.values(MODELS).map(m => m.product)).size;
+
+function normalize(raw) {
+  // "macbook pro 14.3" / "MacBookPro14 , 3" -> "macbookpro14,3"
+  return raw.trim().replace(/\s+/g, "").replace(/(\d)[.\-_;:](\d)/, "$1,$2").toLowerCase();
+}
+function sizeLabel(bytes) {
+  if (!bytes) return "—";
+  return bytes >= 1e9 ? (bytes / 1e9).toFixed(2) + " GB" : Math.round(bytes / 1e6) + " MB";
+}
+function dateLabel(iso) {
+  return new Date(iso + "T00:00:00").toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" });
+}
+function isAppleSilicon(id) {
+  const m = id.match(/^([a-z]+)(\d+),\d+$/i);
+  if (!m) return false;
+  const fam = m[1].toLowerCase(), n = +m[2];
+  return (fam === "mac" && n >= 13) || (fam === "macbookair" && n >= 10) ||
+         (fam === "macbookpro" && n >= 17) || (fam === "imac" && n >= 21) || (fam === "macmini" && n >= 9);
+}
+function cmpModel(a, b) {
+  const pa = a.match(/^(\D+)(\d+),(\d+)$/), pb = b.match(/^(\D+)(\d+),(\d+)$/);
+  return pa[1].localeCompare(pb[1]) || pa[2] - pb[2] || pa[3] - pb[3];
+}
+function suggestions(q) {
+  if (!q) return [];
+  const keys = Object.keys(MODELS);
+  const fam = q.replace(/[\d,]+$/, "");
+  let hits = keys.filter(k => k.toLowerCase().startsWith(q));
+  if (!hits.length && fam) hits = keys.filter(k => k.toLowerCase().replace(/[\d,]+$/, "") === fam);
+  return hits.sort(cmpModel).slice(0, 12);
+}
+
+let showingExample = true;
+function renderHint() {
+  $("model-hint").innerHTML = (showingExample ? t("js.example") + " " : "") + t("js.hint");
+}
+
+function render() {
+  const q = normalize(input.value);
+  const key = byLower.get(q);
+  const set = (state, title, text) => {
+    result.dataset.state = state; $("r-title").textContent = title; $("r-text").innerHTML = text;
+  };
+  $("r-spec").hidden = $("r-actions").hidden = $("r-sugg").hidden = true;
+  $("tool-tag").textContent = t("js.tag");
+  document.querySelectorAll(".family .chip.on").forEach(c => c.classList.remove("on"));
+
+  if (!q) {
+    set("idle", t("js.idle_t"), t("js.idle_x"));
+  } else if (key) {
+    const m = MODELS[key];
+    set("ok", t("js.ok_t", { m: key }), t("js.ok_x"));
+    $("r-prod").textContent = m.product;
+    $("r-date").textContent = dateLabel(m.date);
+    $("r-size").textContent = sizeLabel(m.size);
+    $("dl").href = m.url;
+    $("dl").setAttribute("aria-label", t("js.dl_aria", { m: key, s: sizeLabel(m.size) }));
+    $("r-spec").hidden = $("r-actions").hidden = false;
+    $("tool-tag").textContent = key;
+    const chip = document.querySelector('.family .chip[data-m="' + key + '"]');
+    if (chip) chip.classList.add("on");
+  } else if (isAppleSilicon(q)) {
+    set("warn", t("js.as_t"), t("js.as_x"));
+  } else if (/\s|\(|inch|zoll|pouces|pulgadas|20\d\d/.test(input.value.trim().toLowerCase())) {
+    set("warn", t("js.mk_t"), t("js.mk_x"));
+  } else {
+    const s = suggestions(q);
+    set("warn", s.length ? t("js.sg_t") : t("js.nf_t"), s.length ? t("js.sg_x") : t("js.nf_x"));
+    if (s.length) {
+      $("r-sugg").innerHTML = s.map(k => '<button type="button" class="chip" data-m="' + k + '">' + k + "</button>").join("");
+      $("r-sugg").hidden = false;
+    }
+  }
+}
+
+function pick(id) { input.value = id; onType(); }
+function onType() {
+  if (showingExample) { showingExample = false; renderHint(); }
+  render();
+}
+input.addEventListener("input", onType);
+$("tool").addEventListener("submit", e => {
+  e.preventDefault();
+  if (!$("r-actions").hidden) $("dl").click();
+});
+$("clear").addEventListener("click", () => { input.value = ""; onType(); input.focus(); });
+$("r-sugg").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if (b) pick(b.dataset.m); });
+
+// ---------- model index ----------
+const FAMILIES = [
+  ["MacBook", "MacBook", "2006–2017"], ["MacBookAir", "MacBook Air", "2008–2020"],
+  ["MacBookPro", "MacBook Pro", "2006–2020"], ["iMac", "iMac", "2006–2020"], ["iMacPro", "iMac Pro", "2017"],
+  ["Macmini", "Mac mini", "2006–2018"], ["MacPro", "Mac Pro", "2006–2019"],
+];
+function renderFamilies() {
+  $("families").innerHTML = FAMILIES.map(([prefix, name, years]) => {
+    const ids = Object.keys(MODELS).filter(k => k.match(/^\D+/)[0] === prefix).sort(cmpModel);
+    if (!ids.length) return "";
+    return '<div class="family"><h3>' + name + "<small>" + years + " · " + t("js.models_n", { n: ids.length }) +
+      '</small></h3><div class="sugg">' +
+      ids.map(k => '<button type="button" class="chip" data-m="' + k + '">' + k + "</button>").join("") + "</div></div>";
+  }).join("");
+}
+$("families").addEventListener("click", e => {
+  const b = e.target.closest("[data-m]");
+  if (!b) return;
+  pick(b.dataset.m);
+  $("top").scrollIntoView();
+  input.focus({ preventScroll: true });
+});
+
+// ---------- tabs ----------
+const tabs = [...document.querySelectorAll(".tab")];
+function selectTab(tab) {
+  tabs.forEach(x => {
+    const on = x === tab;
+    x.setAttribute("aria-selected", on); x.tabIndex = on ? 0 : -1;
+    $(x.getAttribute("aria-controls")).hidden = !on;
+  });
+}
+tabs.forEach((tab, i) => {
+  tab.addEventListener("click", () => selectTab(tab));
+  tab.addEventListener("keydown", e => {
+    const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; selectTab(n); n.focus(); }
+  });
+});
+
+// ---------- copy ----------
+let toastTimer;
+function toast(msg) {
+  const el = $("toast"); el.textContent = msg; el.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 1600);
+}
+async function copy(text, el) {
+  try { await navigator.clipboard.writeText(text); toast(t("js.copied")); }
+  catch {
+    const r = document.createRange(); r.selectNodeContents(el);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    toast(t("js.copy_fail"));
+  }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".copy");
+  if (!b) return;
+  const src = b.dataset.copyFrom ? $(b.dataset.copyFrom) : b.previousElementSibling;
+  copy(b.dataset.copy || src.textContent, src);
+});
+$("copy-url").addEventListener("click", () => copy($("dl").href, $("dl")));
+
+// ---------- language ----------
+function applyLang(code) {
+  lang = LANGS[code] ? code : "en";
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-t]").forEach(el => { el.innerHTML = t(el.dataset.t); });
+  document.querySelectorAll(".copy:not([data-t])").forEach(el => { el.textContent = t("js.copy"); });
+  document.querySelectorAll("#langs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang));
+  $("langs").setAttribute("aria-label", t("js.lang_aria"));
+  renderHint(); render(); renderFamilies();
+}
+$("langs").innerHTML = Object.keys(LANGS).map(c =>
+  '<button type="button" data-lang="' + c + '" title="' + LANGS[c] + '" aria-pressed="false">' + c + "</button>").join("");
+$("langs").addEventListener("click", e => {
+  const b = e.target.closest("[data-lang]");
+  if (b) { applyLang(b.dataset.lang); store.set(lang); }
+});
+
+// ---------- first-visit robot ----------
+const intro = $("intro"), bot = $("bot"), say = $("say");
+let typing = null;
+
+function typeText(text, done) {
+  clearTimeout(typing);
+  if (reduceMotion) { say.textContent = text; done && (typing = setTimeout(done, 2400)); return; }
+  bot.classList.add("talking");
+  let i = say.textContent.length;
+  // backspace whatever is there, then type the new line
+  const back = () => {
+    if (say.textContent && !text.startsWith(say.textContent)) {
+      say.textContent = say.textContent.slice(0, -1); typing = setTimeout(back, 14);
+    } else { i = say.textContent.length; type(); }
+  };
+  const type = () => {
+    if (i < text.length) { say.textContent = text.slice(0, ++i); typing = setTimeout(type, 42); }
+    else { bot.classList.remove("talking"); done && (typing = setTimeout(done, 1500)); }
+  };
+  back();
+}
+const QUESTION_ORDER = Object.keys(LANGS);
+let qi = 0, hovering = false;
+function cycleQuestion() {
+  if (hovering) return;
+  const prev = lang;
+  lang = QUESTION_ORDER[qi % QUESTION_ORDER.length];
+  const q = t("js.robot_q");
+  $("skip-label").textContent = t("js.skip");
+  lang = prev;
+  qi++;
+  typeText(q, cycleQuestion);
+}
+function askIn(code) {
+  hovering = true;
+  const prev = lang; lang = code; const q = t("js.robot_q"); lang = prev;
+  typeText(q);
+}
+
+function closeIntro(code, withReply) {
+  if (intro.dataset.closing) return;
+  intro.dataset.closing = "1";
+  store.set(code);
+  applyLang(code);
+  const finish = () => {
+    clearTimeout(typing);
+    const end = () => {
+      intro.hidden = true;
+      document.documentElement.classList.remove("intro-open");
+      input.focus({ preventScroll: true });
+    };
+    if (reduceMotion) return end();
+    intro.classList.add("closing");
+    intro.addEventListener("animationend", end, { once: true });
+    setTimeout(end, 800); // in case animationend never fires
+  };
+  if (!withReply || reduceMotion) return finish();
+  hovering = true;
+  bot.classList.add("happy");
+  say.textContent = "";
+  typeText(t("js.robot_ok"));
+  setTimeout(finish, 1300);
+}
+
+function openIntro() {
+  intro.hidden = false;
+  intro.classList.remove("closing");
+  delete intro.dataset.closing;
+  bot.classList.remove("happy");
+  document.documentElement.classList.add("intro-open");
+  $("pick").innerHTML = Object.keys(LANGS).map((c, i) =>
+    '<button type="button" class="btn btn-ghost" data-lang="' + c + '"><span>' + (i + 1) + ". " + LANGS[c] +
+    "</span><small>" + c.toUpperCase() + "</small></button>").join("");
+  say.textContent = "";
+  qi = 0; hovering = false;
+  setTimeout(cycleQuestion, reduceMotion ? 0 : 900);
+  $("pick").querySelector("button").focus({ preventScroll: true });
+}
+$("pick").addEventListener("click", e => {
+  const b = e.target.closest("[data-lang]");
+  if (!b) return;
+  b.classList.add("chosen");
+  closeIntro(b.dataset.lang, true);
+});
+$("pick").addEventListener("pointerover", e => {
+  const b = e.target.closest("[data-lang]");
+  if (b && !intro.dataset.closing) askIn(b.dataset.lang);
+});
+$("pick").addEventListener("pointerleave", () => {
+  if (intro.dataset.closing) return;
+  hovering = false; typing = setTimeout(cycleQuestion, 600);
+});
+$("intro-skip").addEventListener("click", () => closeIntro("en", false));
+document.addEventListener("keydown", e => {
+  if (intro.hidden || intro.dataset.closing) return;
+  if (e.key === "Escape") { e.preventDefault(); closeIntro("en", false); }
+  const n = +e.key;
+  if (n >= 1 && n <= QUESTION_ORDER.length) {
+    $("pick").children[n - 1].classList.add("chosen");
+    closeIntro(QUESTION_ORDER[n - 1], true);
+  }
+  if (e.key === "Tab") { // keep focus inside the dialog
+    const f = [...intro.querySelectorAll("button")];
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+  }
+});
+// the robot's eyes follow the pointer
+intro.addEventListener("pointermove", e => {
+  const r = bot.getBoundingClientRect();
+  const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height * .3);
+  const sx = Math.abs(dx) > r.width * .2 ? Math.sign(dx) : 0;
+  const sy = Math.abs(dy) > r.height * .25 ? Math.sign(dy) : 0;
+  $("look").style.transform = "translate(" + sx + "px," + sy + "px)";
+});
+$("replay").addEventListener("click", openIntro);
+
+// ---------- start ----------
+input.value = "MacBookPro14,3";
+const saved = store.get();
+applyLang(saved || "en");
+if (!saved) openIntro();
+</script>

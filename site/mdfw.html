@@ -1,0 +1,1091 @@
+<title>MDfW</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Macbook Drivers for Windows: enter your Mac's model identifier and download the matching Windows driver package straight from Apple.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@400..900&family=Silkscreen:wght@400;700&family=VT323&display=swap">
+<style>
+/* Layout: monochrome terminal. Same structure as before; every shape sits on a 3px pixel grid,
+   drawn with vector fonts, clip-paths and gradients so it stays sharp at any zoom.
+   Deliberately single-theme (black terminal), so no light variant. */
+:root {
+  --bg: #000000;
+  --fg: #f4f4f4;
+  --dim: #8e8e8e;
+  --faint: #3b3b3b;
+  --panel: #0b0b0b;
+  --grid: #161616;
+  --font-display: "Doto", "VT323", ui-monospace, Menlo, Consolas, monospace;
+  --font-body: "VT323", ui-monospace, Menlo, Consolas, monospace;
+  --font-label: "Silkscreen", "VT323", ui-monospace, Menlo, monospace;
+  --p: 3px; /* one "pixel" */
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+::selection { background: var(--fg); color: var(--bg); }
+body {
+  background-color: var(--bg);
+  /* dot-matrix screen: vector dots, crisp at every zoom level */
+  background-image: radial-gradient(circle at center, var(--grid) 0.9px, transparent 1.2px);
+  background-size: 6px 6px;
+  color: var(--fg);
+  font: 400 21px/1.35 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+a { color: var(--fg); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+a:hover { background: var(--fg); color: var(--bg); text-decoration: none; }
+:focus-visible { outline: var(--p) solid var(--fg); outline-offset: var(--p); }
+code, kbd, .mono { font-family: var(--font-body); font-size: 1em; }
+code { background: var(--faint); padding: 0 .25em; }
+kbd { border: 2px solid var(--dim); padding: 0 .3em; white-space: nowrap; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.05; font-weight: 900; }
+h3 { font-family: var(--font-label); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+p { margin: 0; }
+
+/* stepped "pixel" corners: one grid unit notched out of each corner */
+.px, .tool, .way, .code, .callout, .flow, .btn, .chip, .tree, .readout, .result, .tab, .toast, .steps > li::before {
+  clip-path: polygon(0 var(--p), var(--p) var(--p), var(--p) 0, calc(100% - var(--p)) 0, calc(100% - var(--p)) var(--p), 100% var(--p), 100% calc(100% - var(--p)), calc(100% - var(--p)) calc(100% - var(--p)), calc(100% - var(--p)) 100%, var(--p) 100%, var(--p) calc(100% - var(--p)), 0 calc(100% - var(--p)));
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- top bar ---------- */
+.bar { border-bottom: var(--p) solid var(--fg); background: var(--bg); }
+.bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 12px; }
+.brand { display: flex; align-items: baseline; gap: 12px; text-decoration: none; color: var(--fg); }
+.brand:hover { background: none; color: var(--fg); }
+.brand b { font: 900 30px/1 var(--font-display); }
+.brand b::after { content: ""; display: inline-block; width: .5em; height: .8em; margin-left: 4px; background: var(--fg); vertical-align: -0.05em; animation: blink 1.1s steps(1) infinite; }
+.brand span { font: 400 12px/1 var(--font-label); color: var(--dim); text-transform: uppercase; }
+.bar nav { display: flex; gap: 4px; font: 400 12px/1 var(--font-label); text-transform: uppercase; }
+.bar nav a { color: var(--dim); text-decoration: none; padding: 6px 8px; }
+.bar nav a:hover { color: var(--bg); background: var(--fg); }
+@media (max-width: 640px) { .bar nav { display: none; } }
+
+/* ---------- hero + tool ---------- */
+.hero .wrap {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(28px, 5vw, 64px); align-items: start; padding-block: clamp(36px, 6vw, 72px) 52px;
+}
+@media (max-width: 860px) { .hero .wrap { grid-template-columns: minmax(0, 1fr); } }
+.eyebrow { font: 400 12px/1.4 var(--font-label); text-transform: uppercase; color: var(--dim); }
+.eyebrow::before { content: "> "; color: var(--fg); }
+.hero h1 { font-size: clamp(40px, 5.6vw, 66px); margin-top: 18px; letter-spacing: -.01em; }
+.hero h1 em { font-style: normal; background: var(--fg); color: var(--bg); padding: 0 .12em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.lede { margin-top: 22px; font-size: 23px; color: var(--dim); max-width: 32em; }
+.lede code { color: var(--fg); }
+.facts { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 20px; color: var(--dim); }
+.facts strong { color: var(--fg); font-weight: 400; font-variant-numeric: tabular-nums; }
+.facts strong::before { content: "["; color: var(--dim); }
+.facts strong::after { content: "]"; color: var(--dim); }
+
+.tool { background: var(--bg); border: var(--p) solid var(--fg); }
+.tool-head {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 9px 16px; background: var(--fg); color: var(--bg);
+  font: 700 12px/1.2 var(--font-label); text-transform: uppercase;
+}
+.tool-head span:first-child::before { content: "■ "; }
+.tool-body { padding: 22px 18px 20px; display: grid; gap: 14px; }
+.tool label { font: 700 13px/1.2 var(--font-label); text-transform: uppercase; }
+.field {
+  display: flex; align-items: center; gap: 10px;
+  border: var(--p) solid var(--dim); background: var(--panel);
+  padding: 2px 4px 2px 14px;
+}
+.field:focus-within { border-color: var(--fg); }
+.prompt { font: 400 34px/1 var(--font-body); color: var(--dim); }
+.field:focus-within .prompt { color: var(--fg); }
+.field input {
+  flex: 1; min-width: 0; border: 0; background: transparent; color: var(--fg); outline: none;
+  font: 400 clamp(28px, 3.4vw, 36px)/1.3 var(--font-body); padding: 8px 0;
+  caret-color: var(--fg); caret-shape: block;
+}
+.field input::placeholder { color: var(--faint); }
+.clear {
+  border: 0; background: none; color: var(--dim); cursor: pointer; font: 400 14px/1 var(--font-label);
+  padding: 10px 10px; text-transform: uppercase;
+}
+.clear:hover { background: var(--fg); color: var(--bg); }
+.hint { font-size: 19px; color: var(--dim); }
+
+.result { padding: 16px; display: grid; gap: 14px; border: var(--p) solid var(--faint); background: var(--panel); }
+.result[data-state="ok"] { border-color: var(--fg); }
+.result[data-state="warn"] {
+  border-color: var(--dim);
+  /* 1-unit dither stripe across the top marks a warning without colour */
+  background:
+    repeating-linear-gradient(90deg, var(--dim) 0 var(--p), transparent var(--p) calc(var(--p) * 2)) top left / 100% var(--p) no-repeat,
+    var(--panel);
+}
+.status { display: flex; align-items: center; gap: 12px; font: 700 14px/1.3 var(--font-label); text-transform: uppercase; }
+.dot { flex: none; font: 700 12px/1 var(--font-label); padding: 5px 7px; border: 2px solid var(--dim); color: var(--dim); }
+.dot::before { content: "..."; }
+.result[data-state="ok"] .dot { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+.result[data-state="ok"] .dot::before { content: "OK"; }
+.result[data-state="warn"] .dot { border-color: var(--fg); color: var(--fg); }
+.result[data-state="warn"] .dot::before { content: "!!"; }
+.result p { font-size: 19px; color: var(--dim); }
+.spec { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; border-top: 2px dashed var(--faint); padding-top: 12px; }
+.spec div { min-width: 0; }
+.spec dt { font: 400 10px/1.2 var(--font-label); text-transform: uppercase; color: var(--dim); }
+.spec dd { margin: 4px 0 0; font: 400 26px/1.1 var(--font-body); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+@media (max-width: 420px) { .spec { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  font: 700 14px/1 var(--font-label); text-transform: uppercase; text-decoration: none; cursor: pointer;
+  padding: 16px 20px; border: var(--p) solid var(--fg);
+}
+.btn-primary { background: var(--fg); color: var(--bg); }
+.btn-primary:hover {
+  background-color: var(--bg); color: var(--fg);
+  background-image: radial-gradient(circle at center, var(--faint) 1px, transparent 1.4px); background-size: 6px 6px;
+}
+.btn-ghost { background: var(--bg); color: var(--fg); border-color: var(--dim); padding: 14px 16px; font-size: 12px; }
+.btn-ghost:hover { border-color: var(--fg); background: var(--fg); color: var(--bg); }
+.btn[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+.btn svg { width: 21px; height: 21px; shape-rendering: crispEdges; }
+.sugg { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: 400 20px/1 var(--font-body); padding: 6px 10px 7px; cursor: pointer;
+  border: 2px solid var(--faint); background: var(--bg); color: var(--fg);
+}
+.chip:hover { border-color: var(--fg); }
+.tool-foot { padding: 11px 18px; border-top: 2px dashed var(--faint); font-size: 18px; color: var(--dim); }
+
+/* ---------- sections ---------- */
+section.block { padding-block: 60px; position: relative; }
+section.block::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: var(--p);
+  background: repeating-linear-gradient(90deg, var(--dim) 0 var(--p), transparent var(--p) calc(var(--p) * 3));
+}
+.sec-head { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 24px; margin-bottom: 30px; }
+.sec-head .num { font: 900 96px/0.8 var(--font-display); color: var(--fg); }
+.sec-head h2 { font-size: clamp(32px, 3.8vw, 44px); }
+.sec-head h2 code { background: none; padding: 0; font-family: inherit; text-decoration: underline; text-decoration-thickness: var(--p); text-underline-offset: 6px; }
+.sec-head p { margin-top: 12px; color: var(--dim); max-width: 38em; }
+.sec-head p code { color: var(--fg); }
+.sec-body { margin-left: 144px; min-width: 0; }
+@media (max-width: 760px) {
+  .sec-head { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .sec-head .num { font-size: 64px; }
+  .sec-body { margin-left: 0; }
+}
+
+.ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 900px) { .ways { grid-template-columns: minmax(0, 1fr); } }
+.way { background: var(--bg); border: var(--p) solid var(--faint); padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.way:hover { border-color: var(--dim); }
+.way h3 { font-size: 15px; }
+.way .tag { font: 400 10px/1.2 var(--font-label); text-transform: uppercase; color: var(--dim); }
+.way ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; font-size: 20px; }
+.way ol li::marker { color: var(--dim); }
+
+.readout {
+  background: var(--panel); border: 2px solid var(--faint); padding: 10px 12px;
+  font: 400 18px/1.45 var(--font-body); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 12px;
+}
+.readout dt { color: var(--dim); text-align: right; }
+.readout dd { margin: 0; overflow-wrap: anywhere; }
+.readout .hl { background: var(--fg); color: var(--bg); padding: 0 4px; margin-left: -4px; }
+
+.code { position: relative; background: var(--panel); color: var(--fg); border: 2px solid var(--faint); font: 400 19px/1.4 var(--font-body); min-width: 0; }
+.code pre { margin: 0; padding: 12px 14px; overflow-x: auto; white-space: pre; font: inherit; }
+.code .c { color: var(--dim); }
+.code .copy {
+  position: absolute; top: 6px; right: 6px; font: 400 10px/1 var(--font-label); text-transform: uppercase;
+  background: var(--bg); color: var(--fg); border: 2px solid var(--dim); padding: 6px 7px; cursor: pointer;
+}
+.code .copy:hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.code.has-copy pre { padding-right: 76px; }
+.note { font-size: 19px; color: var(--dim); }
+.callout {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start;
+  border: var(--p) solid var(--fg); background: var(--bg); padding: 14px 16px; font-size: 20px; margin-top: 22px;
+}
+.callout b { font-weight: 400; color: var(--fg); }
+.callout p { color: var(--dim); }
+.callout .dot { border-color: var(--fg); color: var(--fg); margin-top: 2px; }
+.callout .dot::before { content: "!!"; }
+
+.flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: var(--p) solid var(--faint); background: var(--bg); }
+.flow > div { padding: 18px 18px; border-right: var(--p) solid var(--faint); min-width: 0; }
+.flow > div:last-child { border-right: 0; }
+.flow b { display: block; font: 700 14px/1.3 var(--font-label); text-transform: uppercase; margin-bottom: 8px; }
+.flow p { font-size: 19px; color: var(--dim); }
+@media (max-width: 760px) { .flow { grid-template-columns: minmax(0, 1fr); } .flow > div { border-right: 0; border-bottom: var(--p) solid var(--faint); } .flow > div:last-child { border-bottom: 0; } }
+
+.tabs { display: flex; gap: 8px; margin-bottom: 22px; overflow-x: auto; padding-bottom: 2px; }
+.tab {
+  font: 700 12px/1 var(--font-label); text-transform: uppercase; background: var(--bg); color: var(--dim); cursor: pointer;
+  padding: 11px 12px; border: 2px solid var(--faint); white-space: nowrap;
+}
+.tab::before { content: "[ "; } .tab::after { content: " ]"; }
+.tab:hover { color: var(--fg); border-color: var(--dim); }
+.tab[aria-selected="true"] { color: var(--bg); background: var(--fg); border-color: var(--fg); }
+.panel { display: grid; gap: 18px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; counter-reset: s; }
+.steps > li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; counter-increment: s; }
+.steps > li::before {
+  content: counter(s); width: 33px; height: 33px; display: grid; place-items: center;
+  font: 700 13px/1 var(--font-label); background: var(--fg); color: var(--bg);
+}
+.steps > li > div { display: grid; gap: 6px; min-width: 0; }
+.steps b { font: 700 14px/1.3 var(--font-label); text-transform: uppercase; padding-top: 6px; }
+.steps p { color: var(--dim); }
+.tree { font: 400 19px/1.4 var(--font-body); background: var(--bg); border: var(--p) solid var(--faint); padding: 12px 16px; overflow-x: auto; white-space: pre; }
+.tree b { font-weight: 400; background: var(--fg); color: var(--bg); padding: 0 4px; }
+
+.families { display: grid; gap: 22px; }
+.family { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 16px; align-items: start; }
+.family h3 { font-size: 13px; padding-top: 6px; }
+.family h3 small { display: block; margin-top: 6px; font: 400 17px/1.2 var(--font-body); color: var(--dim); text-transform: none; }
+@media (max-width: 600px) { .family { grid-template-columns: minmax(0, 1fr); gap: 8px; } }
+.chip.on { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+
+footer { position: relative; padding-block: 30px 44px; font-size: 18px; color: var(--dim); border-top: var(--p) solid var(--fg); }
+footer .wrap { display: grid; gap: 8px; }
+footer p::before { content: "// "; color: var(--faint); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--fg); color: var(--bg); padding: 10px 16px; font: 700 12px/1 var(--font-label); text-transform: uppercase;
+  opacity: 0; transition: opacity .15s steps(2); pointer-events: none;
+}
+.toast.show { opacity: 1; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  html { scroll-behavior: auto; }
+}
+/* clip-path hides outer outlines, so notched controls draw focus inside themselves */
+.btn:focus-visible, .chip:focus-visible, .tab:focus-visible, .copy:focus-visible { outline: 2px solid currentColor; outline-offset: -7px; }
+
+/* ---------- language switcher in the top bar ---------- */
+.bar-right { display: flex; align-items: center; gap: 14px; }
+.langs { display: flex; gap: 2px; }
+.langs button {
+  font: 700 11px/1 var(--font-label); text-transform: uppercase; cursor: pointer;
+  background: var(--bg); color: var(--dim); border: 2px solid transparent; padding: 6px 6px;
+}
+.langs button:hover { color: var(--fg); border-color: var(--faint); }
+.langs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.langs button:focus-visible { outline: 2px solid currentColor; outline-offset: -5px; }
+
+/* ---------- first-visit intro: pixel robot ---------- */
+html.intro-open { overflow: hidden; }
+.intro {
+  position: fixed; inset: 0; z-index: 50; overflow-y: auto;
+  background-color: var(--bg);
+  background-image: radial-gradient(circle at center, var(--grid) 0.9px, transparent 1.2px);
+  background-size: 6px 6px;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  display: grid; grid-template-rows: auto 1fr auto;
+}
+.intro.closing { animation: crt-off .5s steps(6, end) forwards; }
+@keyframes crt-off {
+  0% { transform: none; filter: none; }
+  55% { transform: scale(1, .006); filter: brightness(3); }
+  100% { transform: scale(0, .006); filter: brightness(3); }
+}
+.intro-top { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.boot { font: 400 17px/1.35 var(--font-body); color: var(--dim); margin: 0; padding: 0; list-style: none; }
+.boot li { visibility: hidden; animation: show-line 0s linear forwards; }
+.boot li:nth-child(1) { animation-delay: .05s; }
+.boot li:nth-child(2) { animation-delay: .25s; }
+.boot li:nth-child(3) { animation-delay: .45s; }
+.boot li:nth-child(4) { animation-delay: .65s; color: var(--fg); }
+@keyframes show-line { to { visibility: visible; } }
+.intro-skip { flex: none; }
+.intro-skip kbd { border-color: currentColor; font: 400 11px/1 var(--font-label); padding: 2px 4px; margin-left: 4px; }
+
+.stage {
+  align-self: center; justify-self: center; width: min(100%, 1000px);
+  display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(20px, 5vw, 60px); align-items: center;
+  padding-block: 24px;
+}
+@media (max-width: 760px) { .stage { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: 18px; } }
+
+.bot { width: min(100%, 360px, 48vh); justify-self: center; padding-right: 8%; }
+.bot svg {
+  display: block; width: 100%; height: auto; overflow: visible; shape-rendering: crispEdges;
+  animation: bot-boot .7s steps(10, end) .15s both, bob 1.2s step-end 1s infinite;
+}
+@keyframes bot-boot { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes bob { 0% { transform: translateY(0); } 50% { transform: translateY(-2.4%); } }
+.bot .fg { fill: var(--fg); }
+.bot .bg { fill: var(--bg); }
+.bot .dm { fill: var(--dim); }
+.bot .fa { fill: var(--faint); }
+.bulb { animation: blink 1s step-end infinite; }
+.look { transition: transform .12s steps(1); }
+.eyes { transform-box: fill-box; transform-origin: center; animation: eye-blink 3.6s step-end infinite; }
+@keyframes eye-blink { 0% { transform: scaleY(1); } 92% { transform: scaleY(.34); } 96% { transform: scaleY(1); } }
+.eyes-h, .mouth-o, .bot.happy .eyes-n { visibility: hidden; }
+.bot.happy .eyes-h { visibility: visible; }
+.bot.talking .mouth-o { animation: talk .22s step-end infinite; }
+.bot.talking .mouth-c { animation: talk-c .22s step-end infinite; }
+@keyframes talk { 0% { visibility: visible; } 50% { visibility: hidden; } }
+@keyframes talk-c { 0% { visibility: hidden; } 50% { visibility: visible; } }
+.light { animation: blink 1.2s step-end infinite; }
+.light:nth-of-type(2) { animation-delay: .4s; }
+.light:nth-of-type(3) { animation-delay: .8s; }
+/* waving arm: three hand-drawn frames swapped in steps, no rotation, so pixels stay square */
+.arm-d, .arm-a, .arm-b { animation: 3.2s step-end infinite; }
+.arm-a { animation-name: frame-a; }
+.arm-b { animation-name: frame-b; }
+.arm-d { animation-name: frame-d; }
+@keyframes frame-a { 0% { visibility: visible; } 9% { visibility: hidden; } 18% { visibility: visible; } 27% { visibility: hidden; } 36% { visibility: visible; } 45%, 100% { visibility: hidden; } }
+@keyframes frame-b { 0% { visibility: hidden; } 9% { visibility: visible; } 18% { visibility: hidden; } 27% { visibility: visible; } 36%, 100% { visibility: hidden; } }
+@keyframes frame-d { 0% { visibility: hidden; } 45%, 100% { visibility: visible; } }
+.bot.happy svg { animation: hop .36s step-end infinite; }
+.bot.happy .arm-a, .bot.happy .arm-b { animation-duration: .5s; }
+.bot.happy .arm-d { visibility: hidden; animation: none; }
+@keyframes hop { 0% { transform: translateY(0); } 50% { transform: translateY(-6%); } }
+
+.talk { display: grid; gap: 22px; min-width: 0; }
+@media (max-width: 760px) { .talk { justify-items: center; } }
+.bubble-wrap { position: relative; width: 100%; animation: show-line 0s linear .75s both; visibility: hidden; }
+.bubble {
+  border: var(--p) solid var(--fg); background: var(--bg); padding: 18px 20px 20px;
+  clip-path: polygon(0 var(--p), var(--p) var(--p), var(--p) 0, calc(100% - var(--p)) 0, calc(100% - var(--p)) var(--p), 100% var(--p), 100% calc(100% - var(--p)), calc(100% - var(--p)) calc(100% - var(--p)), calc(100% - var(--p)) 100%, var(--p) 100%, var(--p) calc(100% - var(--p)), 0 calc(100% - var(--p)));
+}
+.bubble-who { font: 400 11px/1 var(--font-label); text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+.bubble-who::before { content: "■ "; color: var(--fg); }
+.bubble-text { font: 900 clamp(30px, 4.4vw, 50px)/1.08 var(--font-display); min-height: 2.16em; text-wrap: balance; }
+.cur { display: inline-block; width: .45em; height: .78em; background: var(--fg); margin-left: 4px; vertical-align: -0.04em; animation: blink 1s steps(1) infinite; }
+/* pixel tail pointing at the robot */
+.tail { position: absolute; left: -27px; top: 30px; width: 30px; height: 30px; shape-rendering: crispEdges; }
+@media (max-width: 760px) { .tail { left: 50%; top: auto; bottom: -27px; transform: translateX(-50%) rotate(-90deg); } }
+
+.pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; }
+.pick .btn { justify-content: space-between; padding: 16px 16px; font-size: 13px; opacity: 0; animation: pop .0s linear forwards; }
+.pick .btn:nth-child(1) { animation-delay: .9s; }
+.pick .btn:nth-child(2) { animation-delay: 1s; }
+.pick .btn:nth-child(3) { animation-delay: 1.1s; }
+.pick .btn:nth-child(4) { animation-delay: 1.2s; }
+@keyframes pop { to { opacity: 1; } }
+.pick .btn small { font: 400 18px/1 var(--font-body); color: inherit; opacity: .6; text-transform: none; }
+.pick .btn.chosen { background: var(--fg); color: var(--bg); }
+.intro-foot { text-align: center; font: 400 11px/1.4 var(--font-label); text-transform: uppercase; color: var(--faint); }
+@media (max-width: 600px) { .boot, .intro-skip kbd { display: none; } .intro-top { justify-content: end; } .intro-skip { padding: 10px 12px; } }
+@media (max-width: 420px) { .pick { grid-template-columns: minmax(0, 1fr); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .boot li, .bubble-wrap { visibility: visible; }
+  .pick .btn { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .arm-a, .arm-b { visibility: hidden; } }
+
+.replay { background: var(--bg); border: 2px solid var(--faint); padding: 4px 5px; cursor: pointer; color: var(--dim); display: grid; place-items: center; }
+.replay:hover { border-color: var(--fg); color: var(--fg); }
+.replay svg { width: 18px; height: 18px; shape-rendering: crispEdges; display: block; }
+</style>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top"><b>MDfW</b><span>Macbook Drivers for Windows</span></a>
+    <div class="bar-right">
+    <nav aria-label="Sections">
+      <a href="#find" data-t="nav.find">Find your model</a>
+      <a href="#download" data-t="nav.dl">Download</a>
+      <a href="#extract" data-t="nav.ex">Extract</a>
+      <a href="#models" data-t="nav.models">All models</a>
+    </nav>
+    <div class="langs" id="langs" role="group" aria-label="Language"></div>
+    <button class="replay" id="replay" type="button" aria-label="Show the robot again" title="Show the robot again"><svg viewBox="0 0 8 8" fill="currentColor" aria-hidden="true"><rect x="3" y="0" width="2" height="1"/><rect x="1" y="1" width="6" height="5"/><rect x="0" y="2" width="1" height="2"/><rect x="7" y="2" width="1" height="2"/><rect x="2" y="6" width="1" height="2"/><rect x="5" y="6" width="1" height="2"/><rect fill="var(--bg)" x="2" y="2" width="1" height="2"/><rect fill="var(--bg)" x="5" y="2" width="1" height="2"/><rect fill="var(--bg)" x="3" y="4" width="2" height="1"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow" data-t="hero.eyebrow">Boot Camp Support Software · Intel Macs</p>
+        <h1 data-t="hero.h1">Windows drivers for your Mac, <em>without</em> Boot Camp Assistant.</h1>
+        <p class="lede" data-t="hero.lede">Type your Mac's model identifier and get the exact driver package Apple built for it. The file comes straight from Apple's servers. Unpack it, run <code>Setup.exe</code> in Windows, and your trackpad, keyboard, Wi‑Fi and audio work.</p>
+        <div class="facts">
+          <span><strong id="f-models">0</strong> <span data-t="hero.f1">supported models</span></span>
+          <span><strong id="f-pkgs">0</strong> <span data-t="hero.f2">driver packages</span></span>
+          <span><span data-t="hero.f3">Package size</span> <strong>0.5–1 GB</strong></span>
+        </div>
+      </div>
+
+      <form class="tool" id="tool" autocomplete="off" novalidate>
+        <div class="tool-head"><span data-t="tool.head">Driver lookup</span><span id="tool-tag">Model identifier</span></div>
+        <div class="tool-body">
+          <label for="model" data-t="tool.label">Your model identifier</label>
+          <div class="field">
+            <span class="prompt" aria-hidden="true">&gt;</span>
+            <input id="model" name="model" type="text" inputmode="text" spellcheck="false" autocapitalize="off"
+                   placeholder="MacBookPro14,3" aria-describedby="model-hint">
+            <button class="clear" type="button" id="clear" aria-label="Clear">Clr</button>
+          </div>
+          <p class="hint" id="model-hint">Letters, then two numbers with a comma, like <code>MacBookAir8,1</code>. <a href="#find">How to find it</a></p>
+
+          <div class="result" id="result" data-state="idle" aria-live="polite">
+            <div class="status"><span class="dot"></span><span id="r-title">Enter a model identifier</span></div>
+            <p id="r-text">The download button appears when your model is found.</p>
+            <dl class="spec" id="r-spec" hidden>
+              <div><dt data-t="tool.package">Package</dt><dd id="r-prod"></dd></div>
+              <div><dt data-t="tool.released">Released</dt><dd id="r-date"></dd></div>
+              <div><dt data-t="tool.size">Size</dt><dd id="r-size"></dd></div>
+            </dl>
+            <div class="sugg" id="r-sugg" hidden></div>
+            <div class="actions" id="r-actions" hidden>
+              <a class="btn btn-primary" id="dl" href="#" target="_blank" rel="noopener">
+                <svg viewBox="0 0 7 7" fill="currentColor" aria-hidden="true"><rect x="3" y="0" width="1" height="4"/><rect x="1" y="2" width="1" height="1"/><rect x="5" y="2" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/><rect x="4" y="3" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/><rect x="0" y="6" width="7" height="1"/></svg>
+                <span data-t="tool.dl">Download drivers</span>
+              </a>
+              <button class="btn btn-ghost" type="button" id="copy-url" data-t="tool.copylink">Copy link</button>
+            </div>
+          </div>
+        </div>
+        <div class="tool-foot" data-t="tool.foot">Downloads <code>BootCampESD.pkg</code> directly from <span class="mono">swcdn.apple.com</span>. Nothing passes through MDfW.</div>
+      </form>
+    </div>
+  </section>
+
+  <section class="block" id="find">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="num">1</div>
+        <div>
+          <h2 data-t="s1.h2">Find your model identifier</h2>
+          <p data-t="s1.p">Every Mac has a short code like <code>MacBookPro14,3</code>. It's different from the marketing name, “MacBook Pro (15‑inch, 2017)”, and only the code tells you exactly which drivers fit. Pick whichever way is easiest.</p>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="ways">
+          <div class="way">
+            <span class="tag" data-t="s1.tag1">macOS · no typing</span>
+            <h3 data-t="s1.h3a">System Information</h3>
+            <ol>
+              <li data-t="s1.a1">Hold <kbd>⌥ Option</kbd> and click the Apple menu.</li>
+              <li data-t="s1.a2">Click <b>System Information…</b></li>
+              <li data-t="s1.a3">Under <b>Hardware</b>, read <b>Model Identifier</b>.</li>
+            </ol>
+            <dl class="readout" aria-label="Example System Information readout">
+              <dt data-t="s1.ro1">Model Name:</dt><dd>MacBook Pro</dd>
+              <dt data-t="s1.ro2">Model Identifier:</dt><dd><span class="hl">MacBookPro14,3</span></dd>
+              <dt data-t="s1.ro3">Processor Name:</dt><dd>Quad-Core Intel Core i7</dd>
+            </dl>
+          </div>
+          <div class="way">
+            <span class="tag">macOS · Terminal</span>
+            <h3 data-t="s1.h3b">One command</h3>
+            <ol>
+              <li data-t="s1.b1">Open <b>Terminal</b> (Spotlight: <kbd>⌘ Space</kbd>, type “Terminal”).</li>
+              <li data-t="s1.b2">Paste this and press <kbd>Return</kbd>:</li>
+            </ol>
+            <div class="code has-copy"><pre>sysctl -n hw.model</pre><button class="copy" type="button" data-copy="sysctl -n hw.model">Copy</button></div>
+            <p class="note" data-t="s1.bn">It prints the identifier, for example <code>MacBookPro14,3</code>.</p>
+          </div>
+          <div class="way">
+            <span class="tag" data-t="s1.tag3">Already in Windows</span>
+            <h3>PowerShell</h3>
+            <ol>
+              <li data-t="s1.c1">Right-click Start and open <b>Terminal</b> or <b>PowerShell</b>.</li>
+              <li data-t="s1.c2">Paste this and press <kbd>Enter</kbd>:</li>
+            </ol>
+            <div class="code has-copy"><pre>(Get-CimInstance Win32_ComputerSystem).Model</pre><button class="copy" type="button" data-copy="(Get-CimInstance Win32_ComputerSystem).Model">Copy</button></div>
+            <p class="note" data-t="s1.cn">Windows reads the same code from the Mac's firmware.</p>
+          </div>
+        </div>
+        <div class="callout"><span class="dot"></span><p data-t="s1.callout"><b>Identifiers like <code>Mac14,2</code>, <code>MacBookAir10,1</code> or <code>MacBookPro17,1</code> mean Apple silicon (M1 or newer).</b> Those Macs can't run Boot Camp, so Apple never made Windows drivers for them. MDfW covers Intel Macs from 2006 to 2020.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="download">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="num">2</div>
+        <div>
+          <h2 data-t="s2.h2">Enter it and download</h2>
+          <p data-t="s2.p">Type the identifier into the <a href="#top">driver lookup</a> at the top, exactly as shown, comma included. Upper or lower case doesn't matter.</p>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="flow">
+          <div><b data-t="s2.f1">Type the code</b><p data-t="s2.f1p">The lookup matches it against every Boot Camp package Apple has published, as soon as you type.</p></div>
+          <div><b data-t="s2.f2">Press Download drivers</b><p data-t="s2.f2p">Your browser saves <code>BootCampESD.pkg</code> from Apple, usually to your Downloads folder.</p></div>
+          <div><b data-t="s2.f3">Keep it on a USB stick</b><p data-t="s2.f3p">If Windows is already installed, put the file somewhere you can reach it from there.</p></div>
+        </div>
+        <p class="note" style="margin-top:14px" data-t="s2.note">If several packages list your model, MDfW picks the newest one. That's the same choice Boot Camp Assistant makes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="extract">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="num">3</div>
+        <div>
+          <h2 data-t="s3.h2">Get <code>Setup.exe</code> out of the package</h2>
+          <p data-t="s3.p">The <code>.pkg</code> is a macOS installer, so Windows can't open it directly. The drivers sit three layers deep. Unpack them on whichever computer you have, then run <code>Setup.exe</code> from Windows.</p>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="tree" aria-label="What's inside the package">BootCampESD.pkg
+└─ Payload
+   └─ Library/Application Support/BootCamp/WindowsSupport.dmg
+      ├─ $WinPEDriver$/
+      └─ BootCamp/
+         ├─ Drivers/
+         └─ <b>Setup.exe</b>   <span data-t="s3.tree">← run this in Windows</span></div>
+
+        <div style="height:28px"></div>
+        <div class="tabs" role="tablist" aria-label="Extraction method">
+          <button class="tab" role="tab" id="t-win" aria-controls="p-win" aria-selected="true" data-t="s3.tw">On Windows</button>
+          <button class="tab" role="tab" id="t-mac" aria-controls="p-mac" aria-selected="false" tabindex="-1" data-t="s3.tm">On a Mac</button>
+          <button class="tab" role="tab" id="t-py" aria-controls="p-py" aria-selected="false" tabindex="-1" data-t="s3.tp">Python script</button>
+        </div>
+
+        <div class="panel" role="tabpanel" id="p-win" aria-labelledby="t-win">
+          <ol class="steps">
+            <li><div><b data-t="s3.w1">Install 7-Zip</b><p data-t="s3.w1p">It's free and opens Apple's package formats. Get it at <a href="https://www.7-zip.org" target="_blank" rel="noopener">7-zip.org</a>.</p></div></li>
+            <li><div><b data-t="s3.w2">Unpack the package</b><p data-t="s3.w2p">Right-click <code>BootCampESD.pkg</code> › <b>7-Zip</b> › <b>Extract to "BootCampESD\"</b>.</p></div></li>
+            <li><div><b data-t="s3.w3">Unpack the payload</b><p data-t="s3.w3p">In that folder, extract <code>Payload</code> the same way. If you then see a file named <code>Payload~</code>, extract that too. You end up with <code>Library\Application Support\BootCamp\WindowsSupport.dmg</code>.</p></div></li>
+            <li><div><b data-t="s3.w4">Unpack the disk image</b><p data-t="s3.w4p">Extract <code>WindowsSupport.dmg</code>. You get the <code>BootCamp</code> and <code>$WinPEDriver$</code> folders.</p></div></li>
+            <li><div><b data-t="s3.w5">Install</b><p data-t="s3.w5p">Open <code>BootCamp</code>, right-click <code>Setup.exe</code> › <b>Run as administrator</b>, and restart when it's done.</p></div></li>
+          </ol>
+          <p class="note" data-t="s3.wn">Prefer the command line? With 7-Zip installed, this does steps 2–4 in one go from the folder holding the package:</p>
+          <div class="code has-copy"><pre id="ps-cmd"><span class="c"># PowerShell</span>
+$7z = "$env:ProgramFiles\7-Zip\7z.exe"
+&amp; $7z x -y -obc BootCampESD.pkg
+&amp; $7z x -y -obc bc\Payload
+if (Test-Path bc\Payload~) { &amp; $7z x -y -obc bc\Payload~ }
+&amp; $7z x -y -oWindowsSupport (Get-ChildItem bc -Recurse -Filter WindowsSupport.dmg).FullName
+start WindowsSupport\BootCamp</pre><button class="copy" type="button" data-copy-from="ps-cmd">Copy</button></div>
+        </div>
+
+        <div class="panel" role="tabpanel" id="p-mac" aria-labelledby="t-mac" hidden>
+          <ol class="steps">
+            <li><div><b data-t="s3.m1">Open Terminal and go to your Downloads</b>
+              <div class="code has-copy"><pre>cd ~/Downloads</pre><button class="copy" type="button" data-copy="cd ~/Downloads">Copy</button></div></div></li>
+            <li><div><b data-t="s3.m2">Unpack the package and its payload</b><p data-t="s3.m2p">macOS includes everything needed.</p>
+              <div class="code has-copy"><pre id="mac-cmd">pkgutil --expand BootCampESD.pkg bc
+mkdir bc_files &amp;&amp; tar -xzf bc/Payload -C bc_files
+open "bc_files/Library/Application Support/BootCamp/WindowsSupport.dmg"</pre><button class="copy" type="button" data-copy-from="mac-cmd">Copy</button></div></div></li>
+            <li><div><b data-t="s3.m3">Copy the drivers to a USB stick</b><p data-t="s3.m3p">A <b>WindowsSupport</b> disk opens in Finder. Copy its <code>BootCamp</code> and <code>$WinPEDriver$</code> folders to a USB stick formatted as <b>ExFAT</b> or <b>MS-DOS (FAT)</b>. Windows can't read Mac-formatted drives.</p></div></li>
+            <li><div><b data-t="s3.m4">Install in Windows</b><p data-t="s3.m4p">Plug the stick in, open <code>BootCamp</code>, right-click <code>Setup.exe</code> › <b>Run as administrator</b>, and restart.</p></div></li>
+          </ol>
+        </div>
+
+        <div class="panel" role="tabpanel" id="p-py" aria-labelledby="t-py" hidden>
+          <p data-t="s3.py">This one script unpacks the package on any system. On a Mac it uses built-in tools. On Windows or Linux it uses 7-Zip. Save it as <code>mdfw_extract.py</code> next to the package, then run:</p>
+          <div class="code has-copy"><pre>python3 mdfw_extract.py BootCampESD.pkg WindowsSupport</pre><button class="copy" type="button" data-copy="python3 mdfw_extract.py BootCampESD.pkg WindowsSupport">Copy</button></div>
+          <p class="note" data-t="s3.pyn">It prints the path to <code>Setup.exe</code> when it's done. Python 3.8 or newer, no extra packages.</p>
+          <div class="code has-copy"><pre id="py-src">#!/usr/bin/env python3
+"""MDfW: unpack BootCampESD.pkg into the Windows driver folder (with Setup.exe).
+
+    python3 mdfw_extract.py BootCampESD.pkg [output_folder]
+
+macOS: uses the built-in pkgutil, tar and hdiutil.
+Windows / Linux: needs 7-Zip (7z on PATH, or installed in C:\\Program Files\\7-Zip).
+Layout: BootCampESD.pkg (xar) -&gt; Payload (gzip cpio) -&gt; WindowsSupport.dmg -&gt; BootCamp\\Setup.exe
+"""
+import os
+import platform
+import plistlib
+import shutil
+import subprocess
+import sys
+import tempfile
+
+
+def find_7z():
+    for name in ("7z", "7zz", "7za"):
+        path = shutil.which(name)
+        if path:
+            return path
+    for base in (os.environ.get("ProgramFiles"), os.environ.get("ProgramFiles(x86)")):
+        if base and os.path.exists(os.path.join(base, "7-Zip", "7z.exe")):
+            return os.path.join(base, "7-Zip", "7z.exe")
+    sys.exit("7-Zip not found. Install it from https://www.7-zip.org and run again.")
+
+
+def find_file(root, name):
+    for dirpath, _, files in os.walk(root):
+        if name in files:
+            return os.path.join(dirpath, name)
+    return None
+
+
+def extract_drivers(pkg_path, out_dir):
+    """Unpack pkg_path into out_dir and return the path to Setup.exe."""
+    os.makedirs(out_dir, exist_ok=True)
+    work = tempfile.mkdtemp(prefix="mdfw_")
+    try:
+        if platform.system() == "Darwin":
+            subprocess.run(["pkgutil", "--expand", pkg_path, os.path.join(work, "pkg")], check=True)
+            subprocess.run(["tar", "-xzf", os.path.join(work, "pkg", "Payload"), "-C", work], check=True)
+            dmg = find_file(work, "WindowsSupport.dmg")
+            info = plistlib.loads(subprocess.run(
+                ["hdiutil", "attach", dmg, "-readonly", "-nobrowse", "-mountrandom", work, "-plist"],
+                check=True, capture_output=True).stdout)
+            mount = next(e["mount-point"] for e in info["system-entities"] if "mount-point" in e)
+            try:
+                shutil.copytree(mount, out_dir, dirs_exist_ok=True)
+            finally:
+                subprocess.run(["hdiutil", "detach", mount, "-quiet"])
+        else:
+            sevenzip = find_7z()
+            # pkg -&gt; Payload -&gt; Payload~ (cpio) -&gt; WindowsSupport.dmg
+            for arc in ("BootCampESD.pkg", "Payload", "Payload~"):
+                src = pkg_path if arc == "BootCampESD.pkg" else os.path.join(work, arc)
+                if os.path.exists(src):
+                    subprocess.run([sevenzip, "x", "-y", "-o" + work, src],
+                                   check=True, stdout=subprocess.DEVNULL)
+            dmg = find_file(work, "WindowsSupport.dmg")
+            if not dmg:
+                sys.exit("WindowsSupport.dmg was not found inside the package.")
+            subprocess.run([sevenzip, "x", "-y", "-o" + out_dir, dmg],
+                           check=True, stdout=subprocess.DEVNULL)
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    return find_file(out_dir, "Setup.exe")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) not in (2, 3):
+        sys.exit(__doc__)
+    pkg = os.path.abspath(sys.argv[1])
+    out = os.path.abspath(sys.argv[2] if len(sys.argv) == 3 else "WindowsSupport")
+    setup = extract_drivers(pkg, out)
+    print(f"Drivers extracted to: {out}")
+    print(f"Run this in Windows:  {setup}" if setup else "Setup.exe not found in the output.")
+</pre><button class="copy" type="button" data-copy-from="py-src" data-t="s3.copyscript">Copy script</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="models">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="num" aria-hidden="true">*</div>
+        <div>
+          <h2 data-t="s4.h2">Every supported model</h2>
+          <p data-t="s4.p">Click an identifier to look it up. Within each family, a higher first number usually means a newer Mac.</p>
+        </div>
+      </div>
+      <div class="sec-body"><div class="families" id="families"></div></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p data-t="ft.1">MDfW is an independent project and is not affiliated with or endorsed by Apple. Mac, MacBook and Boot Camp are trademarks of Apple Inc.</p>
+    <p data-t="ft.2">The model list was built from Apple's public software update catalog on 2026-11-03. Every download link points to Apple's own servers.</p>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status"></div>
+
+<div class="intro" id="intro" role="dialog" aria-modal="true" aria-label="Choose a language" hidden>
+  <div class="intro-top">
+    <ul class="boot" aria-hidden="true">
+      <li>MDFW BIOS v0.2.6</li>
+      <li>READING APPLE CATALOG ....... OK</li>
+      <li>INDEXING MODELS ............. 112</li>
+      <li>&gt; HELLO, HUMAN</li>
+    </ul>
+    <button class="btn btn-ghost intro-skip" type="button" id="intro-skip"><span id="skip-label">Skip</span> → English <kbd>Esc</kbd></button>
+  </div>
+
+  <div class="stage">
+    <div class="bot" id="bot">
+      <svg viewBox="-2 0 30 30" aria-hidden="true">
+        <!-- antenna -->
+        <rect class="fg" x="11" y="2" width="2" height="3"/>
+        <rect class="fg bulb" x="10" y="0" width="4" height="2"/>
+        <!-- ears -->
+        <rect class="dm" x="2" y="8" width="2" height="5"/>
+        <rect class="dm" x="20" y="8" width="2" height="5"/>
+        <!-- head -->
+        <rect class="fg" x="5" y="5" width="14" height="11"/>
+        <rect class="fg" x="4" y="6" width="16" height="9"/>
+        <g class="look" id="look">
+          <g class="eyes eyes-n">
+            <rect class="bg" x="7" y="8" width="3" height="3"/>
+            <rect class="bg" x="14" y="8" width="3" height="3"/>
+          </g>
+          <g class="eyes-h">
+            <rect class="bg" x="7" y="10" width="1" height="1"/><rect class="bg" x="8" y="9" width="1" height="1"/><rect class="bg" x="9" y="10" width="1" height="1"/>
+            <rect class="bg" x="14" y="10" width="1" height="1"/><rect class="bg" x="15" y="9" width="1" height="1"/><rect class="bg" x="16" y="10" width="1" height="1"/>
+          </g>
+        </g>
+        <rect class="dm" x="5" y="12" width="1" height="1"/>
+        <rect class="dm" x="18" y="12" width="1" height="1"/>
+        <rect class="bg mouth-c" x="9" y="13" width="6" height="1"/>
+        <g class="mouth-o"><rect class="bg" x="9" y="12" width="6" height="2"/><rect class="dm" x="10" y="13" width="4" height="1"/></g>
+        <!-- neck + body -->
+        <rect class="dm" x="10" y="16" width="4" height="1"/>
+        <rect class="fg" x="7" y="17" width="10" height="8"/>
+        <rect class="fg" x="6" y="18" width="12" height="6"/>
+        <rect class="bg" x="8" y="19" width="8" height="4"/>
+        <rect class="fg light" x="9" y="20" width="1" height="1"/>
+        <rect class="fg light" x="11" y="20" width="1" height="1"/>
+        <rect class="fg light" x="13" y="20" width="1" height="1"/>
+        <rect class="fa" x="9" y="21" width="6" height="1"/>
+        <!-- left arm -->
+        <rect class="fg" x="5" y="18" width="1" height="2"/>
+        <rect class="fg" x="3" y="18" width="2" height="5"/>
+        <rect class="fg" x="2" y="23" width="3" height="2"/>
+        <!-- right arm: down / wave A / wave B -->
+        <rect class="fg" x="18" y="18" width="1" height="2"/>
+        <g class="arm-d"><rect class="fg" x="19" y="18" width="2" height="5"/><rect class="fg" x="19" y="23" width="3" height="2"/></g>
+        <g class="arm-a"><rect class="fg" x="19" y="17" width="2" height="2"/><rect class="fg" x="21" y="15" width="2" height="2"/><rect class="fg" x="22" y="12" width="2" height="3"/><rect class="fg" x="22" y="9" width="3" height="3"/></g>
+        <g class="arm-b"><rect class="fg" x="19" y="17" width="2" height="2"/><rect class="fg" x="21" y="16" width="2" height="2"/><rect class="fg" x="23" y="14" width="2" height="2"/><rect class="fg" x="24" y="11" width="3" height="3"/></g>
+        <!-- legs -->
+        <rect class="fg" x="8" y="25" width="3" height="2"/>
+        <rect class="fg" x="13" y="25" width="3" height="2"/>
+        <rect class="fg" x="7" y="27" width="4" height="1"/>
+        <rect class="fg" x="13" y="27" width="4" height="1"/>
+        <!-- dithered shadow -->
+        <g class="fa"><rect x="5" y="29" width="1" height="1"/><rect x="7" y="29" width="1" height="1"/><rect x="9" y="29" width="1" height="1"/><rect x="11" y="29" width="1" height="1"/><rect x="13" y="29" width="1" height="1"/><rect x="15" y="29" width="1" height="1"/><rect x="17" y="29" width="1" height="1"/></g>
+      </svg>
+    </div>
+
+    <div class="talk">
+      <div class="bubble-wrap">
+        <svg class="tail" viewBox="0 0 5 5" aria-hidden="true"><rect fill="var(--fg)" x="0" y="2" width="2" height="1"/><rect fill="var(--fg)" x="2" y="1" width="2" height="3"/><rect fill="var(--fg)" x="4" y="0" width="1" height="5"/></svg>
+      <div class="bubble">
+        <p class="bubble-who">MDFW-BOT</p>
+        <p class="bubble-text" aria-live="polite"><span id="say"></span><span class="cur" aria-hidden="true"></span></p>
+      </div>
+      </div>
+      <div class="pick" id="pick"></div>
+    </div>
+  </div>
+
+  <p class="intro-foot">Press 1–4 to choose · Esc for English</p>
+</div>
+
+<script>
+const MODELS = {"iMac10,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"iMac11,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"iMac11,2":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"iMac11,3":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"iMac12,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"iMac12,2":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"iMac13,1":{"product":"041-84821","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/26/08/041-84821-A_AMCFPC3QDK/4fffs8qgdflw7pn1finqqd40gifh41mvs6/BootCampESD.pkg","size":948113051},"iMac13,2":{"product":"041-84821","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/26/08/041-84821-A_AMCFPC3QDK/4fffs8qgdflw7pn1finqqd40gifh41mvs6/BootCampESD.pkg","size":948113051},"iMac13,3":{"product":"041-84821","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/26/08/041-84821-A_AMCFPC3QDK/4fffs8qgdflw7pn1finqqd40gifh41mvs6/BootCampESD.pkg","size":948113051},"iMac14,1":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"iMac14,2":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"iMac14,3":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"iMac14,4":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"iMac15,1":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"iMac16,1":{"product":"041-88430","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/24/21/041-88430-A_MH044N1M88/l1tfz2ccakcy7ko79ugzcw0naadra581o3/BootCampESD.pkg","size":695899519},"iMac16,2":{"product":"041-88430","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/24/21/041-88430-A_MH044N1M88/l1tfz2ccakcy7ko79ugzcw0naadra581o3/BootCampESD.pkg","size":695899519},"iMac17,1":{"product":"041-88430","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/24/21/041-88430-A_MH044N1M88/l1tfz2ccakcy7ko79ugzcw0naadra581o3/BootCampESD.pkg","size":695899519},"iMac18,1":{"product":"041-88735","date":"2019-10-13","url":"https://swcdn.apple.com/content/downloads/53/06/041-88735-A_5MC8H30E1T/uzofvyg87dqhkn2qh1ipxy4f1uxduhitsb/BootCampESD.pkg","size":398603681},"iMac18,2":{"product":"061-97204","date":"2020-04-16","url":"https://swcdn.apple.com/content/downloads/48/61/061-97204/zjcotww2iqibyvy6wbx3q9d50ca4lhig85/BootCampESD.pkg","size":695406870},"iMac18,3":{"product":"061-97204","date":"2020-04-16","url":"https://swcdn.apple.com/content/downloads/48/61/061-97204/zjcotww2iqibyvy6wbx3q9d50ca4lhig85/BootCampESD.pkg","size":695406870},"iMac19,1":{"product":"061-97204","date":"2020-04-16","url":"https://swcdn.apple.com/content/downloads/48/61/061-97204/zjcotww2iqibyvy6wbx3q9d50ca4lhig85/BootCampESD.pkg","size":695406870},"iMac19,2":{"product":"061-97204","date":"2020-04-16","url":"https://swcdn.apple.com/content/downloads/48/61/061-97204/zjcotww2iqibyvy6wbx3q9d50ca4lhig85/BootCampESD.pkg","size":695406870},"iMac20,1":{"product":"001-04272","date":"2020-10-14","url":"https://swcdn.apple.com/content/downloads/10/11/001-04272/up3eig0wm5slvensvxyem836jceudix2vz/BootCampESD.pkg","size":836833591},"iMac20,2":{"product":"001-04272","date":"2020-10-14","url":"https://swcdn.apple.com/content/downloads/10/11/001-04272/up3eig0wm5slvensvxyem836jceudix2vz/BootCampESD.pkg","size":836833591},"iMac5,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"iMac6,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"iMac7,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"iMac8,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"iMac9,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"iMacPro1,1":{"product":"061-97204","date":"2020-04-16","url":"https://swcdn.apple.com/content/downloads/48/61/061-97204/zjcotww2iqibyvy6wbx3q9d50ca4lhig85/BootCampESD.pkg","size":695406870},"MacBook10,1":{"product":"041-89042","date":"2019-10-14","url":"https://swcdn.apple.com/content/downloads/32/09/041-89042-A_XVZ2U8XKG2/06ub1qfep6wv3g8bb68smwt3ac25xyng83/BootCampESD.pkg","size":409720220},"MacBook2,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBook3,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBook4,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBook5,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBook5,2":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBook5,3":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBook6,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBook7,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBook8,1":{"product":"041-88436","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/63/48/041-88436-A_A9JD5TGYOC/9qwbctjgtpqblqv40gl7uwf625j5pe796i/BootCampESD.pkg","size":390448512},"MacBook9,1":{"product":"041-88148","date":"2019-10-16","url":"https://swcdn.apple.com/content/downloads/35/26/041-88148-A_FV1FQ1MLRG/qyueop2fculv8o6ybt2oq266qo98pqphb9/BootCampESD.pkg","size":329958786},"MacBookAir1,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookAir2,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookAir3,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookAir3,2":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookAir4,1":{"product":"041-84859","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/29/62/041-84859-A_GGUOSJMIGN/sb1apxcjpp358ze2df6bzhwd49m2cqyzy5/BootCampESD.pkg","size":677000602},"MacBookAir4,2":{"product":"041-84859","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/29/62/041-84859-A_GGUOSJMIGN/sb1apxcjpp358ze2df6bzhwd49m2cqyzy5/BootCampESD.pkg","size":677000602},"MacBookAir5,1":{"product":"041-84869","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/50/29/041-84869-A_EJ35WAWA75/obofx71e3kcf8aqzukdrzg7hqpv1p06hca/BootCampESD.pkg","size":942980953},"MacBookAir5,2":{"product":"041-84869","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/50/29/041-84869-A_EJ35WAWA75/obofx71e3kcf8aqzukdrzg7hqpv1p06hca/BootCampESD.pkg","size":942980953},"MacBookAir6,1":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"MacBookAir6,2":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"MacBookAir7,1":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"MacBookAir7,2":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"MacBookAir8,1":{"product":"041-91736","date":"2019-10-09","url":"https://swcdn.apple.com/content/downloads/26/37/041-91736-A_6XKJ6AQL4K/9qene91xdcr1ytzik312zjmbaxyujy0p7j/BootCampESD.pkg","size":544269691},"MacBookAir8,2":{"product":"061-26579","date":"2019-10-14","url":"https://swcdn.apple.com/content/downloads/52/10/061-26579-A_7RJL96VW4I/z662ygc05hfe7cukb3itfbc8i1j7boxu95/BootCampESD.pkg","size":509359472},"MacBookAir9,1":{"product":"041-84890","date":"2020-03-18","url":"https://swcdn.apple.com/content/downloads/16/33/041-84890/kj5efmjgugmbrx9lknsl7ab6ray0ctwf5o/BootCampESD.pkg","size":512233795},"MacBookPro10,1":{"product":"041-84869","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/50/29/041-84869-A_EJ35WAWA75/obofx71e3kcf8aqzukdrzg7hqpv1p06hca/BootCampESD.pkg","size":942980953},"MacBookPro10,2":{"product":"041-84821","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/26/08/041-84821-A_AMCFPC3QDK/4fffs8qgdflw7pn1finqqd40gifh41mvs6/BootCampESD.pkg","size":948113051},"MacBookPro11,1":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"MacBookPro11,2":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"MacBookPro11,3":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"MacBookPro11,4":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"MacBookPro11,5":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"MacBookPro12,1":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"MacBookPro13,1":{"product":"041-88734","date":"2019-10-13","url":"https://swcdn.apple.com/content/downloads/28/47/041-88734-A_Q0SKN07BL0/7knxzec1xmojr5x5t7xnu5a4u6lslmlf9v/BootCampESD.pkg","size":353187226},"MacBookPro13,2":{"product":"041-88734","date":"2019-10-13","url":"https://swcdn.apple.com/content/downloads/28/47/041-88734-A_Q0SKN07BL0/7knxzec1xmojr5x5t7xnu5a4u6lslmlf9v/BootCampESD.pkg","size":353187226},"MacBookPro13,3":{"product":"041-88737","date":"2019-10-13","url":"https://swcdn.apple.com/content/downloads/25/38/041-88737-A_IXJZSM8OLV/fq3xy3duoq3xqp9o2sa8dkjtz5wvjaojhq/BootCampESD.pkg","size":572663165},"MacBookPro14,1":{"product":"041-89042","date":"2019-10-14","url":"https://swcdn.apple.com/content/downloads/32/09/041-89042-A_XVZ2U8XKG2/06ub1qfep6wv3g8bb68smwt3ac25xyng83/BootCampESD.pkg","size":409720220},"MacBookPro14,2":{"product":"041-89042","date":"2019-10-14","url":"https://swcdn.apple.com/content/downloads/32/09/041-89042-A_XVZ2U8XKG2/06ub1qfep6wv3g8bb68smwt3ac25xyng83/BootCampESD.pkg","size":409720220},"MacBookPro14,3":{"product":"041-89072","date":"2019-10-14","url":"https://swcdn.apple.com/content/downloads/47/29/041-89072-A_HZY5QI4LGV/knck1r3qmsw9nliisjjm7vll0zv1u239eu/BootCampESD.pkg","size":809731463},"MacBookPro15,1":{"product":"041-91737","date":"2019-10-09","url":"https://swcdn.apple.com/content/downloads/24/46/041-91737-A_KOBGOTCIEZ/0b9gnebg3ivdfsd79simxpr60vvx9sy31k/BootCampESD.pkg","size":998143387},"MacBookPro15,2":{"product":"041-91737","date":"2019-10-09","url":"https://swcdn.apple.com/content/downloads/24/46/041-91737-A_KOBGOTCIEZ/0b9gnebg3ivdfsd79simxpr60vvx9sy31k/BootCampESD.pkg","size":998143387},"MacBookPro15,3":{"product":"041-88748","date":"2019-10-13","url":"https://swcdn.apple.com/content/downloads/24/61/041-88748/z2zwt4m9xtxt5sf64w9v5bz760cohxc2jc/BootCampESD.pkg","size":1125701013},"MacBookPro15,4":{"product":"061-26565","date":"2019-10-16","url":"https://swcdn.apple.com/content/downloads/41/45/061-26565-A_30YFW2NOY7/mcryv1yqxl8bmiok36kl4tiycf3g72uda5/BootCampESD.pkg","size":988362095},"MacBookPro16,1":{"product":"061-62383","date":"2020-01-08","url":"https://swcdn.apple.com/content/downloads/57/59/061-62383/5cwdopr0f0k6f3lqzb6j3ecnjx2ok9fdiw/BootCampESD.pkg","size":701043001},"MacBookPro16,2":{"product":"061-51481","date":"2020-05-04","url":"https://swcdn.apple.com/content/downloads/31/36/061-51481/6jxbd689uscmpm1bhsu9kv05kpthc2rdui/BootCampESD.pkg","size":512430389},"MacBookPro16,3":{"product":"061-51481","date":"2020-05-04","url":"https://swcdn.apple.com/content/downloads/31/36/061-51481/6jxbd689uscmpm1bhsu9kv05kpthc2rdui/BootCampESD.pkg","size":512430389},"MacBookPro16,4":{"product":"041-96204","date":"2020-06-15","url":"https://swcdn.apple.com/content/downloads/08/36/041-96204/w1q0ukl3x12fbeee41ex7lgjt82h7zrdn4/BootCampESD.pkg","size":766513450},"MacBookPro2,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro2,2":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro3,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro4,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro5,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro5,2":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro5,3":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro5,4":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro5,5":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro6,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro6,2":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro7,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro8,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro8,2":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro8,3":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacBookPro9,1":{"product":"041-84821","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/26/08/041-84821-A_AMCFPC3QDK/4fffs8qgdflw7pn1finqqd40gifh41mvs6/BootCampESD.pkg","size":948113051},"MacBookPro9,2":{"product":"041-84821","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/26/08/041-84821-A_AMCFPC3QDK/4fffs8qgdflw7pn1finqqd40gifh41mvs6/BootCampESD.pkg","size":948113051},"Macmini2,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"Macmini3,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"Macmini4,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"Macmini5,1":{"product":"041-84859","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/29/62/041-84859-A_GGUOSJMIGN/sb1apxcjpp358ze2df6bzhwd49m2cqyzy5/BootCampESD.pkg","size":677000602},"Macmini5,2":{"product":"041-84859","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/29/62/041-84859-A_GGUOSJMIGN/sb1apxcjpp358ze2df6bzhwd49m2cqyzy5/BootCampESD.pkg","size":677000602},"Macmini5,3":{"product":"041-84859","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/29/62/041-84859-A_GGUOSJMIGN/sb1apxcjpp358ze2df6bzhwd49m2cqyzy5/BootCampESD.pkg","size":677000602},"Macmini6,1":{"product":"041-84821","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/26/08/041-84821-A_AMCFPC3QDK/4fffs8qgdflw7pn1finqqd40gifh41mvs6/BootCampESD.pkg","size":948113051},"Macmini6,2":{"product":"041-84821","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/26/08/041-84821-A_AMCFPC3QDK/4fffs8qgdflw7pn1finqqd40gifh41mvs6/BootCampESD.pkg","size":948113051},"Macmini7,1":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"Macmini8,1":{"product":"041-91731","date":"2019-10-14","url":"https://swcdn.apple.com/content/downloads/23/15/041-91731-A_LBI7Q8UWOG/juk1ng0hm623gxh3jv4qxt190ga1h5p0lw/BootCampESD.pkg","size":548136308},"MacPro1,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacPro2,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacPro3,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacPro4,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacPro5,1":{"product":"041-84868","date":"2019-10-22","url":"https://swcdn.apple.com/content/downloads/57/55/041-84868-A_402D0DFI39/6uz8hhgtd4b87t00mrq0uihiop5ivumsbk/BootCampESD.pkg","size":632605139},"MacPro6,1":{"product":"041-98143","date":"2019-10-10","url":"https://swcdn.apple.com/content/downloads/62/58/041-98143-A_HN8B941A1T/nknv1gt3xcgylggwc11kl5e0j4296tjfo1/BootCampESD.pkg","size":1614464893},"MacPro7,1":{"product":"002-34411","date":"2022-03-14","url":"https://swcdn.apple.com/content/downloads/48/55/002-34411-A_GQNVCB6UOC/m67xlo3dipbdxmdeeocd39hmxka5o9dg2k/BootCampESD.pkg","size":713634112}};
+const I18N = {"nav.find":{"en":"Find your model","de":"Modell finden","fr":"Trouver le modèle","es":"Buscar modelo"},"nav.dl":{"en":"Download","de":"Download","fr":"Télécharger","es":"Descargar"},"nav.ex":{"en":"Extract","de":"Entpacken","fr":"Extraire","es":"Extraer"},"nav.models":{"en":"All models","de":"Alle Modelle","fr":"Tous les modèles","es":"Todos los modelos"},"hero.eyebrow":{"en":"Boot Camp Support Software · Intel Macs","de":"Boot Camp-Supportsoftware · Intel-Macs","fr":"Logiciel de prise en charge Boot Camp · Mac Intel","es":"Software de soporte de Boot Camp · Mac con Intel"},"hero.h1":{"en":"Windows drivers for your Mac, <em>without<\/em> Boot Camp Assistant.","de":"Windows-Treiber für deinen Mac, <em>ohne<\/em> Boot Camp-Assistent.","fr":"Les pilotes Windows de votre Mac, <em>sans<\/em> l'Assistant Boot Camp.","es":"Drivers de Windows para tu Mac, <em>sin<\/em> el Asistente Boot Camp."},"hero.lede":{"en":"Type your Mac's model identifier and get the exact driver package Apple built for it. The file comes straight from Apple's servers. Unpack it, run <code>Setup.exe<\/code> in Windows, and your trackpad, keyboard, Wi‑Fi and audio work.","de":"Gib die Modell-ID deines Macs ein und erhalte genau das Treiberpaket, das Apple dafür gebaut hat. Die Datei kommt direkt von Apples Servern. Entpacke sie, starte <code>Setup.exe<\/code> in Windows, und Trackpad, Tastatur, WLAN und Audio funktionieren.","fr":"Saisissez l'identifiant de modèle de votre Mac et obtenez le paquet de pilotes exact qu'Apple a créé pour lui. Le fichier vient directement des serveurs d'Apple. Décompressez-le, lancez <code>Setup.exe<\/code> dans Windows, et le trackpad, le clavier, le Wi‑Fi et le son fonctionnent.","es":"Escribe el identificador de modelo de tu Mac y obtén el paquete de drivers exacto que Apple creó para él. El archivo viene directamente de los servidores de Apple. Descomprímelo, ejecuta <code>Setup.exe<\/code> en Windows y funcionarán el trackpad, el teclado, el Wi‑Fi y el audio."},"hero.f1":{"en":"supported models","de":"unterstützte Modelle","fr":"modèles pris en charge","es":"modelos compatibles"},"hero.f2":{"en":"driver packages","de":"Treiberpakete","fr":"paquets de pilotes","es":"paquetes de drivers"},"hero.f3":{"en":"Package size","de":"Paketgröße","fr":"Taille du paquet","es":"Tamaño del paquete"},"tool.head":{"en":"Driver lookup","de":"Treibersuche","fr":"Recherche de pilotes","es":"Buscador de drivers"},"tool.label":{"en":"Your model identifier","de":"Deine Modell-ID","fr":"Votre identifiant de modèle","es":"Tu identificador de modelo"},"tool.package":{"en":"Package","de":"Paket","fr":"Paquet","es":"Paquete"},"tool.released":{"en":"Released","de":"Erschienen","fr":"Publié","es":"Publicado"},"tool.size":{"en":"Size","de":"Größe","fr":"Taille","es":"Tamaño"},"tool.dl":{"en":"Download drivers","de":"Treiber herunterladen","fr":"Télécharger les pilotes","es":"Descargar drivers"},"tool.copylink":{"en":"Copy link","de":"Link kopieren","fr":"Copier le lien","es":"Copiar enlace"},"tool.foot":{"en":"Downloads <code>BootCampESD.pkg<\/code> directly from <span class=\"mono\">swcdn.apple.com<\/span>. Nothing passes through MDfW.","de":"Lädt <code>BootCampESD.pkg<\/code> direkt von <span class=\"mono\">swcdn.apple.com<\/span>. Nichts läuft über MDfW.","fr":"Télécharge <code>BootCampESD.pkg<\/code> directement depuis <span class=\"mono\">swcdn.apple.com<\/span>. Rien ne transite par MDfW.","es":"Descarga <code>BootCampESD.pkg<\/code> directamente de <span class=\"mono\">swcdn.apple.com<\/span>. Nada pasa por MDfW."},"s1.h2":{"en":"Find your model identifier","de":"Finde deine Modell-ID","fr":"Trouvez votre identifiant de modèle","es":"Encuentra tu identificador de modelo"},"s1.p":{"en":"Every Mac has a short code like <code>MacBookPro14,3<\/code>. It's different from the marketing name, “MacBook Pro (15‑inch, 2017)”, and only the code tells you exactly which drivers fit. Pick whichever way is easiest.","de":"Jeder Mac hat einen kurzen Code wie <code>MacBookPro14,3<\/code>. Er ist nicht dasselbe wie der Verkaufsname „MacBook Pro (15 Zoll, 2017)“, und nur der Code sagt genau, welche Treiber passen. Nimm den Weg, der dir am leichtesten fällt.","fr":"Chaque Mac a un code court comme <code>MacBookPro14,3<\/code>. Il diffère du nom commercial, « MacBook Pro (15 pouces, 2017) », et seul ce code indique exactement quels pilotes conviennent. Choisissez la méthode la plus simple pour vous.","es":"Cada Mac tiene un código corto como <code>MacBookPro14,3<\/code>. Es distinto del nombre comercial, «MacBook Pro (15 pulgadas, 2017)», y solo el código indica exactamente qué drivers le sirven. Elige la forma que te resulte más fácil."},"s1.tag1":{"en":"macOS · no typing","de":"macOS · ohne Tippen","fr":"macOS · sans rien taper","es":"macOS · sin escribir"},"s1.h3a":{"en":"System Information","de":"Systeminformationen","fr":"Informations système","es":"Información del sistema"},"s1.a1":{"en":"Hold <kbd>⌥ Option<\/kbd> and click the Apple menu.","de":"Halte <kbd>⌥ Wahl<\/kbd> gedrückt und klicke auf das Apple-Menü.","fr":"Maintenez <kbd>⌥ Option<\/kbd> et cliquez sur le menu Pomme.","es":"Mantén pulsada <kbd>⌥ Opción<\/kbd> y haz clic en el menú Apple."},"s1.a2":{"en":"Click <b>System Information…<\/b>","de":"Klicke auf <b>Systeminformationen …<\/b>","fr":"Cliquez sur <b>Informations système…<\/b>","es":"Haz clic en <b>Información del sistema…<\/b>"},"s1.a3":{"en":"Under <b>Hardware<\/b>, read <b>Model Identifier<\/b>.","de":"Lies unter <b>Hardware<\/b> die <b>Modell-Identifizierung<\/b> ab.","fr":"Sous <b>Matériel<\/b>, lisez <b>Identifiant du modèle<\/b>.","es":"En <b>Hardware<\/b>, mira <b>Identificador del modelo<\/b>."},"s1.ro1":{"en":"Model Name:","de":"Modellname:","fr":"Nom du modèle :","es":"Nombre del modelo:"},"s1.ro2":{"en":"Model Identifier:","de":"Modell-Identifizierung:","fr":"Identifiant du modèle :","es":"Identificador del modelo:"},"s1.ro3":{"en":"Processor Name:","de":"Prozessorname:","fr":"Nom du processeur :","es":"Nombre del procesador:"},"s1.h3b":{"en":"One command","de":"Ein Befehl","fr":"Une commande","es":"Un comando"},"s1.b1":{"en":"Open <b>Terminal<\/b> (Spotlight: <kbd>⌘ Space<\/kbd>, type “Terminal”).","de":"Öffne das <b>Terminal<\/b> (Spotlight: <kbd>⌘ Leertaste<\/kbd>, „Terminal“ tippen).","fr":"Ouvrez le <b>Terminal<\/b> (Spotlight : <kbd>⌘ Espace<\/kbd>, tapez « Terminal »).","es":"Abre <b>Terminal<\/b> (Spotlight: <kbd>⌘ Espacio<\/kbd>, escribe «Terminal»)."},"s1.b2":{"en":"Paste this and press <kbd>Return<\/kbd>:","de":"Füge das ein und drücke <kbd>Return<\/kbd>:","fr":"Collez ceci et appuyez sur <kbd>Retour<\/kbd> :","es":"Pega esto y pulsa <kbd>Retorno<\/kbd>:"},"s1.bn":{"en":"It prints the identifier, for example <code>MacBookPro14,3<\/code>.","de":"Es gibt die ID aus, zum Beispiel <code>MacBookPro14,3<\/code>.","fr":"Il affiche l'identifiant, par exemple <code>MacBookPro14,3<\/code>.","es":"Muestra el identificador, por ejemplo <code>MacBookPro14,3<\/code>."},"s1.tag3":{"en":"Already in Windows","de":"Schon in Windows","fr":"Déjà sous Windows","es":"Ya en Windows"},"s1.c1":{"en":"Right-click Start and open <b>Terminal<\/b> or <b>PowerShell<\/b>.","de":"Rechtsklick auf Start und <b>Terminal<\/b> oder <b>PowerShell<\/b> öffnen.","fr":"Faites un clic droit sur Démarrer et ouvrez <b>Terminal<\/b> ou <b>PowerShell<\/b>.","es":"Haz clic derecho en Inicio y abre <b>Terminal<\/b> o <b>PowerShell<\/b>."},"s1.c2":{"en":"Paste this and press <kbd>Enter<\/kbd>:","de":"Füge das ein und drücke <kbd>Enter<\/kbd>:","fr":"Collez ceci et appuyez sur <kbd>Entrée<\/kbd> :","es":"Pega esto y pulsa <kbd>Intro<\/kbd>:"},"s1.cn":{"en":"Windows reads the same code from the Mac's firmware.","de":"Windows liest denselben Code aus der Firmware des Macs.","fr":"Windows lit le même code dans le firmware du Mac.","es":"Windows lee el mismo código del firmware del Mac."},"s1.callout":{"en":"<b>Identifiers like <code>Mac14,2<\/code>, <code>MacBookAir10,1<\/code> or <code>MacBookPro17,1<\/code> mean Apple silicon (M1 or newer).<\/b> Those Macs can't run Boot Camp, so Apple never made Windows drivers for them. MDfW covers Intel Macs from 2006 to 2020.","de":"<b>IDs wie <code>Mac14,2<\/code>, <code>MacBookAir10,1<\/code> oder <code>MacBookPro17,1<\/code> bedeuten Apple Silicon (M1 oder neuer).<\/b> Diese Macs können kein Boot Camp, deshalb hat Apple nie Windows-Treiber für sie gebaut. MDfW deckt Intel-Macs von 2006 bis 2020 ab.","fr":"<b>Des identifiants comme <code>Mac14,2<\/code>, <code>MacBookAir10,1<\/code> ou <code>MacBookPro17,1<\/code> désignent une puce Apple (M1 ou plus récente).<\/b> Ces Mac ne prennent pas en charge Boot Camp, donc Apple n'a jamais créé de pilotes Windows pour eux. MDfW couvre les Mac Intel de 2006 à 2020.","es":"<b>Identificadores como <code>Mac14,2<\/code>, <code>MacBookAir10,1<\/code> o <code>MacBookPro17,1<\/code> indican Apple silicon (M1 o posterior).<\/b> Esos Mac no pueden usar Boot Camp, así que Apple nunca creó drivers de Windows para ellos. MDfW cubre los Mac con Intel de 2006 a 2020."},"s2.h2":{"en":"Enter it and download","de":"Eingeben und herunterladen","fr":"Saisissez-le et téléchargez","es":"Escríbelo y descarga"},"s2.p":{"en":"Type the identifier into the <a href=\"#top\">driver lookup<\/a> at the top, exactly as shown, comma included. Upper or lower case doesn't matter.","de":"Tippe die ID oben in die <a href=\"#top\">Treibersuche<\/a>, genau wie angezeigt, mit Komma. Groß- und Kleinschreibung ist egal.","fr":"Saisissez l'identifiant dans la <a href=\"#top\">recherche de pilotes<\/a> en haut, exactement comme affiché, virgule comprise. Majuscules et minuscules n'ont pas d'importance.","es":"Escribe el identificador en el <a href=\"#top\">buscador de drivers<\/a> de arriba, tal como aparece, con la coma. Da igual si usas mayúsculas o minúsculas."},"s2.f1":{"en":"Type the code","de":"Code eintippen","fr":"Tapez le code","es":"Escribe el código"},"s2.f1p":{"en":"The lookup matches it against every Boot Camp package Apple has published, as soon as you type.","de":"Die Suche gleicht ihn schon beim Tippen mit jedem Boot Camp-Paket ab, das Apple veröffentlicht hat.","fr":"Dès la saisie, la recherche le compare à chaque paquet Boot Camp publié par Apple.","es":"Mientras escribes, el buscador lo compara con todos los paquetes de Boot Camp que Apple ha publicado."},"s2.f2":{"en":"Press Download drivers","de":"Auf Treiber herunterladen drücken","fr":"Cliquez sur Télécharger les pilotes","es":"Pulsa Descargar drivers"},"s2.f2p":{"en":"Your browser saves <code>BootCampESD.pkg<\/code> from Apple, usually to your Downloads folder.","de":"Dein Browser speichert <code>BootCampESD.pkg<\/code> von Apple, meist in deinem Downloads-Ordner.","fr":"Votre navigateur enregistre <code>BootCampESD.pkg<\/code> depuis Apple, en général dans le dossier Téléchargements.","es":"Tu navegador guarda <code>BootCampESD.pkg<\/code> desde Apple, normalmente en la carpeta Descargas."},"s2.f3":{"en":"Keep it on a USB stick","de":"Auf einen USB-Stick legen","fr":"Gardez-le sur une clé USB","es":"Guárdalo en un USB"},"s2.f3p":{"en":"If Windows is already installed, put the file somewhere you can reach it from there.","de":"Wenn Windows schon installiert ist, leg die Datei dort ab, wo du sie von Windows aus erreichst.","fr":"Si Windows est déjà installé, placez le fichier à un endroit accessible depuis Windows.","es":"Si Windows ya está instalado, deja el archivo en un sitio al que puedas llegar desde allí."},"s2.note":{"en":"If several packages list your model, MDfW picks the newest one. That's the same choice Boot Camp Assistant makes.","de":"Wenn mehrere Pakete dein Modell nennen, nimmt MDfW das neueste. So entscheidet auch der Boot Camp-Assistent.","fr":"Si plusieurs paquets mentionnent votre modèle, MDfW choisit le plus récent. C'est le même choix que l'Assistant Boot Camp.","es":"Si varios paquetes incluyen tu modelo, MDfW elige el más reciente. Es la misma elección que hace el Asistente Boot Camp."},"s3.h2":{"en":"Get <code>Setup.exe<\/code> out of the package","de":"<code>Setup.exe<\/code> aus dem Paket holen","fr":"Sortir <code>Setup.exe<\/code> du paquet","es":"Saca <code>Setup.exe<\/code> del paquete"},"s3.p":{"en":"The <code>.pkg<\/code> is a macOS installer, so Windows can't open it directly. The drivers sit three layers deep. Unpack them on whichever computer you have, then run <code>Setup.exe<\/code> from Windows.","de":"Die <code>.pkg<\/code> ist ein macOS-Installer, Windows kann sie also nicht direkt öffnen. Die Treiber liegen drei Ebenen tief. Entpacke sie auf dem Computer, den du gerade hast, und starte dann <code>Setup.exe<\/code> in Windows.","fr":"Le <code>.pkg<\/code> est un installateur macOS, Windows ne peut donc pas l'ouvrir directement. Les pilotes sont trois niveaux plus bas. Décompressez-les sur l'ordinateur dont vous disposez, puis lancez <code>Setup.exe<\/code> depuis Windows.","es":"El <code>.pkg<\/code> es un instalador de macOS, así que Windows no puede abrirlo directamente. Los drivers están tres niveles por debajo. Descomprímelos en el ordenador que tengas y luego ejecuta <code>Setup.exe<\/code> desde Windows."},"s3.tree":{"en":"← run this in Windows","de":"← in Windows starten","fr":"← à lancer dans Windows","es":"← ejecútalo en Windows"},"s3.tw":{"en":"On Windows","de":"Unter Windows","fr":"Sous Windows","es":"En Windows"},"s3.tm":{"en":"On a Mac","de":"Auf dem Mac","fr":"Sur un Mac","es":"En un Mac"},"s3.tp":{"en":"Python script","de":"Python-Skript","fr":"Script Python","es":"Script de Python"},"s3.w1":{"en":"Install 7-Zip","de":"7-Zip installieren","fr":"Installer 7-Zip","es":"Instala 7-Zip"},"s3.w1p":{"en":"It's free and opens Apple's package formats. Get it at <a href=\"https://www.7-zip.org\" target=\"_blank\" rel=\"noopener\">7-zip.org<\/a>.","de":"Es ist kostenlos und öffnet Apples Paketformate. Du bekommst es auf <a href=\"https://www.7-zip.org\" target=\"_blank\" rel=\"noopener\">7-zip.org<\/a>.","fr":"Il est gratuit et ouvre les formats de paquet d'Apple. Téléchargez-le sur <a href=\"https://www.7-zip.org\" target=\"_blank\" rel=\"noopener\">7-zip.org<\/a>.","es":"Es gratis y abre los formatos de paquete de Apple. Descárgalo en <a href=\"https://www.7-zip.org\" target=\"_blank\" rel=\"noopener\">7-zip.org<\/a>."},"s3.w2":{"en":"Unpack the package","de":"Paket entpacken","fr":"Décompresser le paquet","es":"Descomprime el paquete"},"s3.w2p":{"en":"Right-click <code>BootCampESD.pkg<\/code> › <b>7-Zip<\/b> › <b>Extract to \"BootCampESD\\\"<\/b>.","de":"Rechtsklick auf <code>BootCampESD.pkg<\/code> › <b>7-Zip<\/b> › <b>Entpacken nach \"BootCampESD\\\"<\/b>.","fr":"Clic droit sur <code>BootCampESD.pkg<\/code> › <b>7-Zip<\/b> › <b>Extraire vers \"BootCampESD\\\"<\/b>.","es":"Clic derecho en <code>BootCampESD.pkg<\/code> › <b>7-Zip<\/b> › <b>Extraer en \"BootCampESD\\\"<\/b>."},"s3.w3":{"en":"Unpack the payload","de":"Payload entpacken","fr":"Décompresser le Payload","es":"Descomprime el Payload"},"s3.w3p":{"en":"In that folder, extract <code>Payload<\/code> the same way. If you then see a file named <code>Payload~<\/code>, extract that too. You end up with <code>Library\\Application Support\\BootCamp\\WindowsSupport.dmg<\/code>.","de":"Entpacke in diesem Ordner <code>Payload<\/code> auf dieselbe Weise. Siehst du danach eine Datei <code>Payload~<\/code>, entpacke sie auch. Am Ende hast du <code>Library\\Application Support\\BootCamp\\WindowsSupport.dmg<\/code>.","fr":"Dans ce dossier, extrayez <code>Payload<\/code> de la même façon. Si un fichier <code>Payload~<\/code> apparaît, extrayez-le aussi. Vous obtenez <code>Library\\Application Support\\BootCamp\\WindowsSupport.dmg<\/code>.","es":"En esa carpeta, extrae <code>Payload<\/code> de la misma forma. Si después ves un archivo <code>Payload~<\/code>, extráelo también. Al final tendrás <code>Library\\Application Support\\BootCamp\\WindowsSupport.dmg<\/code>."},"s3.w4":{"en":"Unpack the disk image","de":"Disk-Image entpacken","fr":"Décompresser l'image disque","es":"Descomprime la imagen de disco"},"s3.w4p":{"en":"Extract <code>WindowsSupport.dmg<\/code>. You get the <code>BootCamp<\/code> and <code>$WinPEDriver$<\/code> folders.","de":"Entpacke <code>WindowsSupport.dmg<\/code>. Du erhältst die Ordner <code>BootCamp<\/code> und <code>$WinPEDriver$<\/code>.","fr":"Extrayez <code>WindowsSupport.dmg<\/code>. Vous obtenez les dossiers <code>BootCamp<\/code> et <code>$WinPEDriver$<\/code>.","es":"Extrae <code>WindowsSupport.dmg<\/code>. Obtendrás las carpetas <code>BootCamp<\/code> y <code>$WinPEDriver$<\/code>."},"s3.w5":{"en":"Install","de":"Installieren","fr":"Installer","es":"Instala"},"s3.w5p":{"en":"Open <code>BootCamp<\/code>, right-click <code>Setup.exe<\/code> › <b>Run as administrator<\/b>, and restart when it's done.","de":"Öffne <code>BootCamp<\/code>, Rechtsklick auf <code>Setup.exe<\/code> › <b>Als Administrator ausführen<\/b>, und starte neu, wenn es fertig ist.","fr":"Ouvrez <code>BootCamp<\/code>, clic droit sur <code>Setup.exe<\/code> › <b>Exécuter en tant qu'administrateur<\/b>, puis redémarrez à la fin.","es":"Abre <code>BootCamp<\/code>, clic derecho en <code>Setup.exe<\/code> › <b>Ejecutar como administrador<\/b> y reinicia cuando termine."},"s3.wn":{"en":"Prefer the command line? With 7-Zip installed, this does steps 2–4 in one go from the folder holding the package:","de":"Lieber die Kommandozeile? Mit installiertem 7-Zip erledigt das die Schritte 2–4 auf einmal, ausgeführt im Ordner mit dem Paket:","fr":"Vous préférez la ligne de commande ? Avec 7-Zip installé, ceci fait les étapes 2 à 4 d'un coup, depuis le dossier qui contient le paquet :","es":"¿Prefieres la línea de comandos? Con 7-Zip instalado, esto hace los pasos 2–4 de una vez desde la carpeta del paquete:"},"s3.m1":{"en":"Open Terminal and go to your Downloads","de":"Terminal öffnen und zu deinen Downloads wechseln","fr":"Ouvrez le Terminal et allez dans Téléchargements","es":"Abre Terminal y ve a Descargas"},"s3.m2":{"en":"Unpack the package and its payload","de":"Paket und Payload entpacken","fr":"Décompressez le paquet et son Payload","es":"Descomprime el paquete y su Payload"},"s3.m2p":{"en":"macOS includes everything needed.","de":"macOS bringt alles Nötige mit.","fr":"macOS inclut tout le nécessaire.","es":"macOS incluye todo lo necesario."},"s3.m3":{"en":"Copy the drivers to a USB stick","de":"Treiber auf einen USB-Stick kopieren","fr":"Copiez les pilotes sur une clé USB","es":"Copia los drivers a un USB"},"s3.m3p":{"en":"A <b>WindowsSupport<\/b> disk opens in Finder. Copy its <code>BootCamp<\/code> and <code>$WinPEDriver$<\/code> folders to a USB stick formatted as <b>ExFAT<\/b> or <b>MS-DOS (FAT)<\/b>. Windows can't read Mac-formatted drives.","de":"Im Finder öffnet sich ein Laufwerk <b>WindowsSupport<\/b>. Kopiere die Ordner <code>BootCamp<\/code> und <code>$WinPEDriver$<\/code> auf einen USB-Stick im Format <b>ExFAT<\/b> oder <b>MS-DOS (FAT)<\/b>. Windows kann Mac-formatierte Laufwerke nicht lesen.","fr":"Un disque <b>WindowsSupport<\/b> s'ouvre dans le Finder. Copiez ses dossiers <code>BootCamp<\/code> et <code>$WinPEDriver$<\/code> sur une clé USB formatée en <b>ExFAT<\/b> ou <b>MS-DOS (FAT)<\/b>. Windows ne lit pas les disques formatés pour Mac.","es":"Se abre un disco <b>WindowsSupport<\/b> en el Finder. Copia sus carpetas <code>BootCamp<\/code> y <code>$WinPEDriver$<\/code> a un USB formateado como <b>ExFAT<\/b> o <b>MS-DOS (FAT)<\/b>. Windows no puede leer discos con formato de Mac."},"s3.m4":{"en":"Install in Windows","de":"In Windows installieren","fr":"Installez dans Windows","es":"Instala en Windows"},"s3.m4p":{"en":"Plug the stick in, open <code>BootCamp<\/code>, right-click <code>Setup.exe<\/code> › <b>Run as administrator<\/b>, and restart.","de":"Steck den Stick ein, öffne <code>BootCamp<\/code>, Rechtsklick auf <code>Setup.exe<\/code> › <b>Als Administrator ausführen<\/b>, und starte neu.","fr":"Branchez la clé, ouvrez <code>BootCamp<\/code>, clic droit sur <code>Setup.exe<\/code> › <b>Exécuter en tant qu'administrateur<\/b>, puis redémarrez.","es":"Conecta el USB, abre <code>BootCamp<\/code>, clic derecho en <code>Setup.exe<\/code> › <b>Ejecutar como administrador<\/b> y reinicia."},"s3.py":{"en":"This one script unpacks the package on any system. On a Mac it uses built-in tools. On Windows or Linux it uses 7-Zip. Save it as <code>mdfw_extract.py<\/code> next to the package, then run:","de":"Dieses eine Skript entpackt das Paket auf jedem System. Auf dem Mac nutzt es eingebaute Werkzeuge, unter Windows oder Linux 7-Zip. Speichere es als <code>mdfw_extract.py<\/code> neben dem Paket und führe dann aus:","fr":"Ce script décompresse le paquet sur n'importe quel système. Sur Mac, il utilise les outils intégrés. Sous Windows ou Linux, il utilise 7-Zip. Enregistrez-le sous <code>mdfw_extract.py<\/code> à côté du paquet, puis lancez :","es":"Este script descomprime el paquete en cualquier sistema. En Mac usa herramientas integradas; en Windows o Linux usa 7-Zip. Guárdalo como <code>mdfw_extract.py<\/code> junto al paquete y ejecuta:"},"s3.pyn":{"en":"It prints the path to <code>Setup.exe<\/code> when it's done. Python 3.8 or newer, no extra packages.","de":"Am Ende zeigt es den Pfad zu <code>Setup.exe<\/code>. Python 3.8 oder neuer, keine Zusatzpakete.","fr":"À la fin, il affiche le chemin de <code>Setup.exe<\/code>. Python 3.8 ou plus récent, sans paquet supplémentaire.","es":"Al terminar muestra la ruta a <code>Setup.exe<\/code>. Python 3.8 o posterior, sin paquetes extra."},"s3.copyscript":{"en":"Copy script","de":"Skript kopieren","fr":"Copier le script","es":"Copiar script"},"s4.h2":{"en":"Every supported model","de":"Alle unterstützten Modelle","fr":"Tous les modèles pris en charge","es":"Todos los modelos compatibles"},"s4.p":{"en":"Click an identifier to look it up. Within each family, a higher first number usually means a newer Mac.","de":"Klicke auf eine ID, um sie nachzuschlagen. Innerhalb einer Familie bedeutet eine höhere erste Zahl meist einen neueren Mac.","fr":"Cliquez sur un identifiant pour le rechercher. Dans chaque famille, un premier nombre plus élevé indique en général un Mac plus récent.","es":"Haz clic en un identificador para buscarlo. Dentro de cada familia, un primer número más alto suele indicar un Mac más nuevo."},"ft.1":{"en":"MDfW is an independent project and is not affiliated with or endorsed by Apple. Mac, MacBook and Boot Camp are trademarks of Apple Inc.","de":"MDfW ist ein unabhängiges Projekt und steht in keiner Verbindung zu Apple. Mac, MacBook und Boot Camp sind Marken von Apple Inc.","fr":"MDfW est un projet indépendant, sans lien avec Apple ni approuvé par Apple. Mac, MacBook et Boot Camp sont des marques d'Apple Inc.","es":"MDfW es un proyecto independiente, sin relación con Apple ni respaldado por Apple. Mac, MacBook y Boot Camp son marcas de Apple Inc."},"ft.2":{"en":"The model list was built from Apple's public software update catalog on 2026-11-03. Every download link points to Apple's own servers.","de":"Die Modellliste wurde am 2026-11-03 aus Apples öffentlichem Softwareupdate-Katalog erstellt. Jeder Download-Link zeigt auf Apples eigene Server.","fr":"La liste des modèles a été établie le 2026-11-03 à partir du catalogue public de mises à jour d'Apple. Chaque lien pointe vers les serveurs d'Apple.","es":"La lista de modelos se creó el 2026-11-03 a partir del catálogo público de actualizaciones de Apple. Cada enlace apunta a los servidores de Apple."},"js.tag":{"en":"Model identifier","de":"Modell-ID","fr":"Identifiant de modèle","es":"Identificador de modelo"},"js.hint":{"en":"Letters, then two numbers with a comma, like <code>MacBookAir8,1<\/code>. <a href=\"#find\">How to find it<\/a>","de":"Buchstaben, dann zwei Zahlen mit Komma, etwa <code>MacBookAir8,1<\/code>. <a href=\"#find\">So findest du sie<\/a>","fr":"Des lettres, puis deux nombres séparés par une virgule, comme <code>MacBookAir8,1<\/code>. <a href=\"#find\">Comment le trouver<\/a>","es":"Letras y luego dos números con una coma, como <code>MacBookAir8,1<\/code>. <a href=\"#find\">Cómo encontrarlo<\/a>"},"js.example":{"en":"Example shown. Replace it with yours.","de":"Beispiel. Ersetze es durch deine.","fr":"Exemple affiché. Remplacez-le par le vôtre.","es":"Es un ejemplo. Cámbialo por el tuyo."},"js.idle_t":{"en":"Enter a model identifier","de":"Modell-ID eingeben","fr":"Saisissez un identifiant de modèle","es":"Escribe un identificador de modelo"},"js.idle_x":{"en":"The download button appears when your model is found.","de":"Der Download-Button erscheint, sobald dein Modell gefunden ist.","fr":"Le bouton de téléchargement apparaît dès que votre modèle est trouvé.","es":"El botón de descarga aparece cuando se encuentra tu modelo."},"js.ok_t":{"en":"{m} is supported","de":"{m} wird unterstützt","fr":"{m} est pris en charge","es":"{m} es compatible"},"js.ok_x":{"en":"Boot Camp Support Software for this Mac, as published by Apple.","de":"Boot Camp-Supportsoftware für diesen Mac, wie von Apple veröffentlicht.","fr":"Logiciel de prise en charge Boot Camp pour ce Mac, tel que publié par Apple.","es":"Software de soporte de Boot Camp para este Mac, tal como lo publicó Apple."},"js.dl_aria":{"en":"Download drivers for {m} ({s})","de":"Treiber für {m} herunterladen ({s})","fr":"Télécharger les pilotes pour {m} ({s})","es":"Descargar drivers para {m} ({s})"},"js.as_t":{"en":"This is an Apple silicon Mac","de":"Das ist ein Mac mit Apple Silicon","fr":"C'est un Mac à puce Apple","es":"Es un Mac con Apple silicon"},"js.as_x":{"en":"Macs with M1 or newer chips can't use Boot Camp, so Apple has no Windows drivers for them. To run Windows on this Mac, use a virtual machine.","de":"Macs mit M1 oder neueren Chips können kein Boot Camp, daher gibt es von Apple keine Windows-Treiber für sie. Für Windows auf diesem Mac nutze eine virtuelle Maschine.","fr":"Les Mac équipés d'une puce M1 ou plus récente ne prennent pas en charge Boot Camp, Apple ne fournit donc pas de pilotes Windows. Pour utiliser Windows sur ce Mac, passez par une machine virtuelle.","es":"Los Mac con chip M1 o posterior no pueden usar Boot Camp, así que Apple no tiene drivers de Windows para ellos. Para usar Windows en este Mac, usa una máquina virtual."},"js.mk_t":{"en":"That looks like the marketing name","de":"Das sieht nach dem Verkaufsnamen aus","fr":"Cela ressemble au nom commercial","es":"Eso parece el nombre comercial"},"js.mk_x":{"en":"Enter the model identifier instead, like <code>MacBookPro14,3<\/code>. <a href=\"#find\">Here's how to find it.<\/a>","de":"Gib stattdessen die Modell-ID ein, etwa <code>MacBookPro14,3<\/code>. <a href=\"#find\">So findest du sie.<\/a>","fr":"Saisissez plutôt l'identifiant de modèle, comme <code>MacBookPro14,3<\/code>. <a href=\"#find\">Voici comment le trouver.<\/a>","es":"Escribe el identificador de modelo, como <code>MacBookPro14,3<\/code>. <a href=\"#find\">Así puedes encontrarlo.<\/a>"},"js.sg_t":{"en":"Keep typing, or pick your model","de":"Tipp weiter oder wähle dein Modell","fr":"Continuez la saisie ou choisissez votre modèle","es":"Sigue escribiendo o elige tu modelo"},"js.sg_x":{"en":"These identifiers match what you've typed so far:","de":"Diese IDs passen zu dem, was du bisher getippt hast:","fr":"Ces identifiants correspondent à ce que vous avez saisi :","es":"Estos identificadores coinciden con lo que has escrito:"},"js.nf_t":{"en":"No driver package for this identifier","de":"Kein Treiberpaket für diese ID","fr":"Aucun paquet de pilotes pour cet identifiant","es":"No hay paquete de drivers para este identificador"},"js.nf_x":{"en":"Check the spelling, comma included. You can also browse <a href=\"#models\">every supported model<\/a>.","de":"Prüfe die Schreibweise, auch das Komma. Du kannst auch <a href=\"#models\">alle unterstützten Modelle<\/a> durchsehen.","fr":"Vérifiez l'orthographe, virgule comprise. Vous pouvez aussi parcourir <a href=\"#models\">tous les modèles pris en charge<\/a>.","es":"Revisa cómo está escrito, coma incluida. También puedes ver <a href=\"#models\">todos los modelos compatibles<\/a>."},"js.copy":{"en":"Copy","de":"Kopieren","fr":"Copier","es":"Copiar"},"js.copied":{"en":"Copied","de":"Kopiert","fr":"Copié","es":"Copiado"},"js.copy_fail":{"en":"Press ⌘C or Ctrl+C to copy","de":"Drücke ⌘C oder Strg+C zum Kopieren","fr":"Appuyez sur ⌘C ou Ctrl+C pour copier","es":"Pulsa ⌘C o Ctrl+C para copiar"},"js.models_n":{"en":"{n} models","de":"{n} Modelle","fr":"{n} modèles","es":"{n} modelos"},"js.robot_ok":{"en":"Great! Let's find your drivers.","de":"Super! Suchen wir deine Treiber.","fr":"Parfait ! Trouvons vos pilotes.","es":"¡Genial! Busquemos tus drivers."},"js.robot_q":{"en":"What language do we speak?","de":"Welche Sprache sprechen wir?","fr":"Quelle langue parlons-nous ?","es":"¿Qué idioma hablamos?"},"js.skip":{"en":"Skip","de":"Überspringen","fr":"Passer","es":"Saltar"},"js.lang_aria":{"en":"Language","de":"Sprache","fr":"Langue","es":"Idioma"}};
+const LANGS = {"en":"English","de":"Deutsch","fr":"Français","es":"Español"};
+const LANG_KEY = "mdfw.lang";
+
+let lang = "en";
+const t = (key, vars) => {
+  const e = I18N[key] || {};
+  let s = e[lang] ?? e.en ?? key;
+  for (const k in vars || {}) s = s.replace("{" + k + "}", vars[k]);
+  return s;
+};
+const store = {
+  get() { try { return localStorage.getItem(LANG_KEY); } catch { return null; } },
+  set(v) { try { localStorage.setItem(LANG_KEY, v); } catch {} },
+};
+
+const byLower = new Map(Object.keys(MODELS).map(k => [k.toLowerCase(), k]));
+const $ = id => document.getElementById(id);
+const input = $("model"), result = $("result");
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+$("f-models").textContent = Object.keys(MODELS).length;
+$("f-pkgs").textContent = new Set(Object.values(MODELS).map(m => m.product)).size;
+
+function normalize(raw) {
+  // "macbook pro 14.3" / "MacBookPro14 , 3" -> "macbookpro14,3"
+  return raw.trim().replace(/\s+/g, "").replace(/(\d)[.\-_;:](\d)/, "$1,$2").toLowerCase();
+}
+function sizeLabel(bytes) {
+  if (!bytes) return "—";
+  return bytes >= 1e9 ? (bytes / 1e9).toFixed(2) + " GB" : Math.round(bytes / 1e6) + " MB";
+}
+function dateLabel(iso) {
+  return new Date(iso + "T00:00:00").toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" });
+}
+function isAppleSilicon(id) {
+  const m = id.match(/^([a-z]+)(\d+),\d+$/i);
+  if (!m) return false;
+  const fam = m[1].toLowerCase(), n = +m[2];
+  return (fam === "mac" && n >= 13) || (fam === "macbookair" && n >= 10) ||
+         (fam === "macbookpro" && n >= 17) || (fam === "imac" && n >= 21) || (fam === "macmini" && n >= 9);
+}
+function cmpModel(a, b) {
+  const pa = a.match(/^(\D+)(\d+),(\d+)$/), pb = b.match(/^(\D+)(\d+),(\d+)$/);
+  return pa[1].localeCompare(pb[1]) || pa[2] - pb[2] || pa[3] - pb[3];
+}
+function suggestions(q) {
+  if (!q) return [];
+  const keys = Object.keys(MODELS);
+  const fam = q.replace(/[\d,]+$/, "");
+  let hits = keys.filter(k => k.toLowerCase().startsWith(q));
+  if (!hits.length && fam) hits = keys.filter(k => k.toLowerCase().replace(/[\d,]+$/, "") === fam);
+  return hits.sort(cmpModel).slice(0, 12);
+}
+
+let showingExample = true;
+function renderHint() {
+  $("model-hint").innerHTML = (showingExample ? t("js.example") + " " : "") + t("js.hint");
+}
+
+function render() {
+  const q = normalize(input.value);
+  const key = byLower.get(q);
+  const set = (state, title, text) => {
+    result.dataset.state = state; $("r-title").textContent = title; $("r-text").innerHTML = text;
+  };
+  $("r-spec").hidden = $("r-actions").hidden = $("r-sugg").hidden = true;
+  $("tool-tag").textContent = t("js.tag");
+  document.querySelectorAll(".family .chip.on").forEach(c => c.classList.remove("on"));
+
+  if (!q) {
+    set("idle", t("js.idle_t"), t("js.idle_x"));
+  } else if (key) {
+    const m = MODELS[key];
+    set("ok", t("js.ok_t", { m: key }), t("js.ok_x"));
+    $("r-prod").textContent = m.product;
+    $("r-date").textContent = dateLabel(m.date);
+    $("r-size").textContent = sizeLabel(m.size);
+    $("dl").href = m.url;
+    $("dl").setAttribute("aria-label", t("js.dl_aria", { m: key, s: sizeLabel(m.size) }));
+    $("r-spec").hidden = $("r-actions").hidden = false;
+    $("tool-tag").textContent = key;
+    const chip = document.querySelector('.family .chip[data-m="' + key + '"]');
+    if (chip) chip.classList.add("on");
+  } else if (isAppleSilicon(q)) {
+    set("warn", t("js.as_t"), t("js.as_x"));
+  } else if (/\s|\(|inch|zoll|pouces|pulgadas|20\d\d/.test(input.value.trim().toLowerCase())) {
+    set("warn", t("js.mk_t"), t("js.mk_x"));
+  } else {
+    const s = suggestions(q);
+    set("warn", s.length ? t("js.sg_t") : t("js.nf_t"), s.length ? t("js.sg_x") : t("js.nf_x"));
+    if (s.length) {
+      $("r-sugg").innerHTML = s.map(k => '<button type="button" class="chip" data-m="' + k + '">' + k + "</button>").join("");
+      $("r-sugg").hidden = false;
+    }
+  }
+}
+
+function pick(id) { input.value = id; onType(); }
+function onType() {
+  if (showingExample) { showingExample = false; renderHint(); }
+  render();
+}
+input.addEventListener("input", onType);
+$("tool").addEventListener("submit", e => {
+  e.preventDefault();
+  if (!$("r-actions").hidden) $("dl").click();
+});
+$("clear").addEventListener("click", () => { input.value = ""; onType(); input.focus(); });
+$("r-sugg").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if (b) pick(b.dataset.m); });
+
+// ---------- model index ----------
+const FAMILIES = [
+  ["MacBook", "MacBook", "2006–2017"], ["MacBookAir", "MacBook Air", "2008–2020"],
+  ["MacBookPro", "MacBook Pro", "2006–2020"], ["iMac", "iMac", "2006–2020"], ["iMacPro", "iMac Pro", "2017"],
+  ["Macmini", "Mac mini", "2006–2018"], ["MacPro", "Mac Pro", "2006–2019"],
+];
+function renderFamilies() {
+  $("families").innerHTML = FAMILIES.map(([prefix, name, years]) => {
+    const ids = Object.keys(MODELS).filter(k => k.match(/^\D+/)[0] === prefix).sort(cmpModel);
+    if (!ids.length) return "";
+    return '<div class="family"><h3>' + name + "<small>" + years + " · " + t("js.models_n", { n: ids.length }) +
+      '</small></h3><div class="sugg">' +
+      ids.map(k => '<button type="button" class="chip" data-m="' + k + '">' + k + "</button>").join("") + "</div></div>";
+  }).join("");
+}
+$("families").addEventListener("click", e => {
+  const b = e.target.closest("[data-m]");
+  if (!b) return;
+  pick(b.dataset.m);
+  $("top").scrollIntoView();
+  input.focus({ preventScroll: true });
+});
+
+// ---------- tabs ----------
+const tabs = [...document.querySelectorAll(".tab")];
+function selectTab(tab) {
+  tabs.forEach(x => {
+    const on = x === tab;
+    x.setAttribute("aria-selected", on); x.tabIndex = on ? 0 : -1;
+    $(x.getAttribute("aria-controls")).hidden = !on;
+  });
+}
+tabs.forEach((tab, i) => {
+  tab.addEventListener("click", () => selectTab(tab));
+  tab.addEventListener("keydown", e => {
+    const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; selectTab(n); n.focus(); }
+  });
+});
+
+// ---------- copy ----------
+let toastTimer;
+function toast(msg) {
+  const el = $("toast"); el.textContent = msg; el.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 1600);
+}
+async function copy(text, el) {
+  try { await navigator.clipboard.writeText(text); toast(t("js.copied")); }
+  catch {
+    const r = document.createRange(); r.selectNodeContents(el);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    toast(t("js.copy_fail"));
+  }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".copy");
+  if (!b) return;
+  const src = b.dataset.copyFrom ? $(b.dataset.copyFrom) : b.previousElementSibling;
+  copy(b.dataset.copy || src.textContent, src);
+});
+$("copy-url").addEventListener("click", () => copy($("dl").href, $("dl")));
+
+// ---------- language ----------
+function applyLang(code) {
+  lang = LANGS[code] ? code : "en";
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-t]").forEach(el => { el.innerHTML = t(el.dataset.t); });
+  document.querySelectorAll(".copy:not([data-t])").forEach(el => { el.textContent = t("js.copy"); });
+  document.querySelectorAll("#langs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang));
+  $("langs").setAttribute("aria-label", t("js.lang_aria"));
+  renderHint(); render(); renderFamilies();
+}
+$("langs").innerHTML = Object.keys(LANGS).map(c =>
+  '<button type="button" data-lang="' + c + '" title="' + LANGS[c] + '" aria-pressed="false">' + c + "</button>").join("");
+$("langs").addEventListener("click", e => {
+  const b = e.target.closest("[data-lang]");
+  if (b) { applyLang(b.dataset.lang); store.set(lang); }
+});
+
+// ---------- first-visit robot ----------
+const intro = $("intro"), bot = $("bot"), say = $("say");
+let typing = null;
+
+function typeText(text, done) {
+  clearTimeout(typing);
+  if (reduceMotion) { say.textContent = text; done && (typing = setTimeout(done, 2400)); return; }
+  bot.classList.add("talking");
+  let i = say.textContent.length;
+  // backspace whatever is there, then type the new line
+  const back = () => {
+    if (say.textContent && !text.startsWith(say.textContent)) {
+      say.textContent = say.textContent.slice(0, -1); typing = setTimeout(back, 14);
+    } else { i = say.textContent.length; type(); }
+  };
+  const type = () => {
+    if (i < text.length) { say.textContent = text.slice(0, ++i); typing = setTimeout(type, 42); }
+    else { bot.classList.remove("talking"); done && (typing = setTimeout(done, 1500)); }
+  };
+  back();
+}
+const QUESTION_ORDER = Object.keys(LANGS);
+let qi = 0, hovering = false;
+function cycleQuestion() {
+  if (hovering) return;
+  const prev = lang;
+  lang = QUESTION_ORDER[qi % QUESTION_ORDER.length];
+  const q = t("js.robot_q");
+  $("skip-label").textContent = t("js.skip");
+  lang = prev;
+  qi++;
+  typeText(q, cycleQuestion);
+}
+function askIn(code) {
+  hovering = true;
+  const prev = lang; lang = code; const q = t("js.robot_q"); lang = prev;
+  typeText(q);
+}
+
+function closeIntro(code, withReply) {
+  if (intro.dataset.closing) return;
+  intro.dataset.closing = "1";
+  store.set(code);
+  applyLang(code);
+  const finish = () => {
+    clearTimeout(typing);
+    const end = () => {
+      intro.hidden = true;
+      document.documentElement.classList.remove("intro-open");
+      input.focus({ preventScroll: true });
+    };
+    if (reduceMotion) return end();
+    intro.classList.add("closing");
+    intro.addEventListener("animationend", end, { once: true });
+    setTimeout(end, 800); // in case animationend never fires
+  };
+  if (!withReply || reduceMotion) return finish();
+  hovering = true;
+  bot.classList.add("happy");
+  say.textContent = "";
+  typeText(t("js.robot_ok"));
+  setTimeout(finish, 1300);
+}
+
+function openIntro() {
+  intro.hidden = false;
+  intro.classList.remove("closing");
+  delete intro.dataset.closing;
+  bot.classList.remove("happy");
+  document.documentElement.classList.add("intro-open");
+  $("pick").innerHTML = Object.keys(LANGS).map((c, i) =>
+    '<button type="button" class="btn btn-ghost" data-lang="' + c + '"><span>' + (i + 1) + ". " + LANGS[c] +
+    "</span><small>" + c.toUpperCase() + "</small></button>").join("");
+  say.textContent = "";
+  qi = 0; hovering = false;
+  setTimeout(cycleQuestion, reduceMotion ? 0 : 900);
+  $("pick").querySelector("button").focus({ preventScroll: true });
+}
+$("pick").addEventListener("click", e => {
+  const b = e.target.closest("[data-lang]");
+  if (!b) return;
+  b.classList.add("chosen");
+  closeIntro(b.dataset.lang, true);
+});
+$("pick").addEventListener("pointerover", e => {
+  const b = e.target.closest("[data-lang]");
+  if (b && !intro.dataset.closing) askIn(b.dataset.lang);
+});
+$("pick").addEventListener("pointerleave", () => {
+  if (intro.dataset.closing) return;
+  hovering = false; typing = setTimeout(cycleQuestion, 600);
+});
+$("intro-skip").addEventListener("click", () => closeIntro("en", false));
+document.addEventListener("keydown", e => {
+  if (intro.hidden || intro.dataset.closing) return;
+  if (e.key === "Escape") { e.preventDefault(); closeIntro("en", false); }
+  const n = +e.key;
+  if (n >= 1 && n <= QUESTION_ORDER.length) {
+    $("pick").children[n - 1].classList.add("chosen");
+    closeIntro(QUESTION_ORDER[n - 1], true);
+  }
+  if (e.key === "Tab") { // keep focus inside the dialog
+    const f = [...intro.querySelectorAll("button")];
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+  }
+});
+// the robot's eyes follow the pointer
+intro.addEventListener("pointermove", e => {
+  const r = bot.getBoundingClientRect();
+  const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height * .3);
+  const sx = Math.abs(dx) > r.width * .2 ? Math.sign(dx) : 0;
+  const sy = Math.abs(dy) > r.height * .25 ? Math.sign(dy) : 0;
+  $("look").style.transform = "translate(" + sx + "px," + sy + "px)";
+});
+$("replay").addEventListener("click", openIntro);
+
+// ---------- start ----------
+input.value = "MacBookPro14,3";
+const saved = store.get();
+applyLang(saved || "en");
+if (!saved) openIntro();
+</script>
