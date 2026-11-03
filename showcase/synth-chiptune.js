@@ -277,7 +277,7 @@ for (let i = 0; i < N; i++) {
     peak = Math.max(peak, Math.abs(o[i]));
   }
 }
-const norm = .89 / peak;
+const norm = .78 / peak; // headroom for AAC inter-sample peaks
 const buf = Buffer.alloc(44 + N * 4);
 buf.write("RIFF", 0); buf.writeUInt32LE(36 + N * 4, 4); buf.write("WAVE", 8); buf.write("fmt ", 12);
 buf.writeUInt32LE(16, 16); buf.writeUInt16LE(1, 20); buf.writeUInt16LE(2, 22); buf.writeUInt32LE(SR, 24);
