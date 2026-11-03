@@ -10,7 +10,7 @@ const SR = 48000, N = Math.ceil(DURATION * SR);
 const BEAT = .5, BAR = 2, S16 = BEAT / 4;
 const mono = () => new Float32Array(N), stereo = () => [mono(), mono()];
 const DI_L = mono(), DI_R = mono(), DI_BASS = mono(), DI_LEAD = mono();
-const DRUMS = stereo(), SFX = stereo(), ROOM = stereo(), ECHO = stereo();
+const DRUMS = stereo(), SFX = stereo(), ROOM = stereo();
 
 let seed = 3;
 const noise = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2147483648 - 1; };

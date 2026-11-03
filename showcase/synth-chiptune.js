@@ -40,7 +40,7 @@ function mixTo(target, i, v, pan) {
 function tone({ t, dur, f, f1 = f, wave = "pulse", duty = .5, a = .002, d = 1e9, sus = 1, rel = .03, gain = .2, pan = 0,
   lp = 0, to = MUSIC, verb = 0, echo = 0, ducked = false, vib = 0, detune = 0 }) {
   const i0 = Math.max(0, Math.round(t * SR)), len = Math.round((dur + rel) * SR);
-  let ph = Math.random() * (wave === "sine" ? 0 : 1), y1 = 0, y2 = 0;
+  let ph = wave === "sine" ? 0 : (noise() + 1) / 2, y1 = 0, y2 = 0; // seeded, so every run is identical
   const k = lp ? 1 - Math.exp(-2 * Math.PI * lp / SR) : 1;
   for (let j = 0; j < len && i0 + j < N; j++) {
     const x = j / SR, p = Math.min(1, x / dur);
