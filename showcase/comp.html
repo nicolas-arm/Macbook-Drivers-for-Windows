@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MDfW showcase composition</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@400..900&family=Silkscreen:wght@400;700&family=VT323&display=swap">
+<style>
+/* 1920x1080 composition in the site's own language: black terminal, dot-matrix, stepped pixel corners.
+   Nothing animates on its own; renderAt(t) sets every frame from the timeline below. */
+:root {
+  --bg: #000; --fg: #f4f4f4; --dim: #8e8e8e; --faint: #3b3b3b; --panel: #0b0b0b; --grid: #171717;
+  --fd: "Doto", "VT323", monospace; --fb: "VT323", monospace; --fl: "Silkscreen", "VT323", monospace;
+  --p: 4px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+#stage {
+  position: relative; width: 1920px; height: 1080px; overflow: hidden; color: var(--fg);
+  background: #000 radial-gradient(circle at center, var(--grid) 1.2px, transparent 1.6px) 0 0 / 8px 8px;
+  font: 400 30px/1.35 var(--fb); -webkit-font-smoothing: antialiased;
+}
+.scene { position: absolute; inset: 0; display: none; }
+.bubble, .cap, .dlp, .stats, .pick b, .toast2 {
+  clip-path: polygon(0 var(--p), var(--p) var(--p), var(--p) 0, calc(100% - var(--p)) 0, calc(100% - var(--p)) var(--p), 100% var(--p), 100% calc(100% - var(--p)), calc(100% - var(--p)) calc(100% - var(--p)), calc(100% - var(--p)) 100%, var(--p) 100%, var(--p) calc(100% - var(--p)), 0 calc(100% - var(--p)));
+}
+.cur { display: inline-block; width: .45em; height: .78em; background: var(--fg); margin-left: 6px; vertical-align: -0.04em; }
+.inv { background: var(--fg); color: var(--bg); padding: 0 .12em; }
+
+/* ---------- robot ---------- */
+.bot svg { display: block; width: 100%; height: auto; overflow: visible; shape-rendering: crispEdges; }
+.bot .fg { fill: var(--fg); } .bot .bg { fill: var(--bg); } .bot .dm { fill: var(--dim); } .bot .fa { fill: var(--faint); }
+
+.bubble-wrap { position: absolute; }
+.bubble { border: var(--p) solid var(--fg); background: var(--bg); padding: 24px 30px 28px; }
+.who { font: 400 15px/1 var(--fl); text-transform: uppercase; color: var(--dim); margin-bottom: 14px; }
+.who::before { content: "■ "; color: var(--fg); }
+.say { font: 900 64px/1.08 var(--fd); min-height: 2.16em; }
+.tail { position: absolute; left: -38px; top: 40px; width: 42px; height: 42px; shape-rendering: crispEdges; }
+
+/* ---------- boot ---------- */
+.boot { position: absolute; left: 72px; top: 56px; list-style: none; font: 400 30px/1.35 var(--fb); color: var(--dim); }
+.boot li { visibility: hidden; white-space: pre; }
+.boot li.hi { color: var(--fg); }
+
+/* ---------- problem ---------- */
+#s-problem .col { position: absolute; left: 240px; top: 150px; width: 1440px; }
+.eyebrow { font: 400 18px/1.4 var(--fl); text-transform: uppercase; color: var(--dim); }
+.eyebrow::before { content: "> "; color: var(--fg); }
+.big { font: 900 92px/1.05 var(--fd); margin-top: 22px; white-space: nowrap; }
+.devs { margin-top: 44px; font: 400 56px/1.4 var(--fb); }
+.devs div { visibility: hidden; color: var(--dim); white-space: pre; }
+.devs .err { visibility: hidden; color: var(--bg); background: var(--fg); padding: 0 12px; margin-left: 10px; }
+#bca { position: relative; display: inline-block; }
+#strike { position: absolute; left: -10px; top: 50%; height: 12px; margin-top: -2px; width: 0; background: var(--fg); }
+#nope { margin-top: 18px; }
+
+/* ---------- brand ---------- */
+#s-brand .center, #s-end .center { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; text-align: center; }
+.logo { font: 900 300px/0.9 var(--fd); letter-spacing: -.01em; white-space: nowrap; }
+.logo .cur { width: .48em; height: .74em; margin-left: 18px; }
+.sub { font: 700 30px/1.2 var(--fl); text-transform: uppercase; letter-spacing: .06em; margin-top: 40px; }
+.tagline { font: 400 44px/1.3 var(--fb); color: var(--dim); margin-top: 26px; min-height: 1.3em; }
+.loading { position: absolute; left: 72px; bottom: 56px; font: 400 30px/1 var(--fb); color: var(--dim); }
+
+/* ---------- site ---------- */
+#s-site { background: var(--bg); transform-origin: 50% 50%; }
+#cam { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+#site { display: block; border: 0; width: 1440px; height: 9000px; background: #000; }
+#lscrim { position: absolute; left: 0; top: 0; bottom: 0; width: 860px; z-index: 4; opacity: 0;
+  background: linear-gradient(to right, #000 0, rgba(0,0,0,.94) 600px, rgba(0,0,0,0) 840px); }
+#caret { position: absolute; background: var(--fg); visibility: hidden; }
+
+.cap {
+  position: absolute; left: 72px; bottom: 64px; z-index: 6; visibility: hidden;
+  background: var(--bg); border: var(--p) solid var(--fg); padding: 0; min-width: 520px; max-width: 1180px;
+}
+.cap .lab { display: flex; justify-content: space-between; gap: 30px; background: var(--fg); color: var(--bg); font: 700 17px/1 var(--fl); text-transform: uppercase; padding: 11px 18px 10px; }
+.cap .lab span:first-child::before { content: "■ "; }
+.cap .txt { font: 900 50px/1.08 var(--fd); padding: 16px 22px 20px; white-space: nowrap; }
+.cap.side { left: 64px; bottom: auto; top: 50%; transform: translateY(-50%); min-width: 0; width: 560px; }
+.cap.side .txt { white-space: normal; font-size: 62px; line-height: 1.04; padding: 20px 24px 26px; min-height: 4.6em; }
+
+.dlp {
+  position: absolute; left: 64px; top: 50%; transform: translateY(-50%); width: 580px; z-index: 6; visibility: hidden;
+  background: var(--bg); border: var(--p) solid var(--fg);
+}
+.dlp .lab { background: var(--fg); color: var(--bg); font: 700 18px/1 var(--fl); text-transform: uppercase; padding: 12px 20px; display: flex; justify-content: space-between; }
+.dlp .body { padding: 26px 26px 30px; display: grid; gap: 14px; }
+.dlp .file { font: 900 50px/1 var(--fd); }
+.dlp dl { display: grid; grid-template-columns: 140px 1fr; font: 400 32px/1.3 var(--fb); }
+.dlp dt { color: var(--dim); }
+.bar { font: 400 40px/1 var(--fb); white-space: pre; margin-top: 6px; }
+.bar b { font-weight: 400; color: var(--fg); }
+.bar i { font-style: normal; color: var(--faint); }
+.dlp .src { font: 700 16px/1.3 var(--fl); text-transform: uppercase; color: var(--dim); border-top: 3px dashed var(--faint); padding-top: 16px; }
+
+.toast2 { position: absolute; left: 50%; bottom: 220px; transform: translateX(-50%); z-index: 6; visibility: hidden; background: var(--fg); color: var(--bg); padding: 16px 24px; font: 700 20px/1 var(--fl); text-transform: uppercase; }
+
+#scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; z-index: 5; pointer-events: none; opacity: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.92) 55%, #000); }
+.stats {
+  position: absolute; left: 50%; bottom: 72px; transform: translateX(-50%); z-index: 6; visibility: hidden;
+  background: var(--bg); border: var(--p) solid var(--fg); display: grid; grid-template-columns: repeat(3, auto);
+}
+.stats > div { padding: 26px 34px 28px; border-right: 3px solid var(--faint); }
+.stats > div:last-child { border-right: 0; }
+.stats b { display: block; font: 900 120px/0.9 var(--fd); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stats span { display: block; margin-top: 16px; font: 700 17px/1.2 var(--fl); text-transform: uppercase; color: var(--dim); }
+
+/* ---------- languages ---------- */
+.pick { position: absolute; left: 820px; top: 640px; width: 960px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.pick b {
+  display: flex; justify-content: space-between; align-items: center; font: 700 20px/1 var(--fl); text-transform: uppercase;
+  border: var(--p) solid var(--dim); padding: 24px 24px; background: var(--bg); color: var(--fg); visibility: hidden;
+}
+.pick b small { font: 400 28px/1 var(--fb); opacity: .6; }
+.pick b.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+/* ---------- end ---------- */
+.words { position: absolute; inset: 0; display: grid; place-content: center; gap: 6px; text-align: left; }
+.words div { font: 900 150px/1.02 var(--fd); visibility: hidden; white-space: nowrap; }
+.words div em { font-style: normal; }
+#end-logo { position: absolute; inset: 0; visibility: hidden; }
+#end-logo .bot { position: absolute; left: 250px; top: 300px; width: 400px; }
+#end-logo .txt { position: absolute; left: 760px; top: 318px; }
+#end-logo .logo { font-size: 240px; }
+#end-logo .sub { margin-top: 30px; text-align: left; }
+#end-logo .facts { margin-top: 36px; display: flex; gap: 34px; font: 400 40px/1 var(--fb); color: var(--dim); }
+#end-logo .facts strong { font-weight: 400; color: var(--fg); }
+#end-logo .facts strong::before { content: "["; color: var(--dim); }
+#end-logo .facts strong::after { content: "]"; color: var(--dim); }
+#end-logo .fine { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; font: 700 16px/1.4 var(--fl); text-transform: uppercase; color: var(--faint); }
+
+/* ---------- global fx ---------- */
+#fx { position: absolute; inset: 0; pointer-events: none; z-index: 20;
+  background: radial-gradient(ellipse at center, transparent 62%, rgba(0,0,0,.55) 100%); }
+#flash { position: absolute; inset: 0; z-index: 21; background: #fff; mix-blend-mode: difference; visibility: hidden; }
+#blackout { position: absolute; inset: 0; z-index: 22; background: #000; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <div class="scene" id="s-boot">
+    <ul class="boot" id="boot">
+      <li>MDFW BIOS v0.2.6</li>
+      <li id="boot-cat"></li>
+      <li id="boot-idx"></li>
+      <li class="hi">&gt; HELLO, HUMAN</li>
+    </ul>
+    <div class="bot" id="bot1" style="position:absolute;left:250px;top:250px;width:470px"></div>
+    <div class="bubble-wrap" id="bub1" style="left:820px;top:330px;width:900px">
+      <svg class="tail" viewBox="0 0 5 5"><rect fill="#f4f4f4" x="0" y="2" width="2" height="1"/><rect fill="#f4f4f4" x="2" y="1" width="2" height="3"/><rect fill="#f4f4f4" x="4" y="0" width="1" height="5"/></svg>
+      <div class="bubble"><p class="who">MDFW-BOT</p><p class="say"><span id="say1"></span><span class="cur" id="cur1"></span></p></div>
+    </div>
+  </div>
+
+  <div class="scene" id="s-problem">
+    <div class="col">
+      <p class="eyebrow">Boot Camp Support Software · Intel Macs</p>
+      <p class="big" id="pb-1"></p>
+      <div class="devs" id="devs">
+        <div>TRACKPAD ............. <span class="err">NO DRIVER</span></div>
+        <div>KEYBOARD BACKLIGHT ... <span class="err">NO DRIVER</span></div>
+        <div>WI-FI ................ <span class="err">NO DRIVER</span></div>
+        <div>AUDIO ................ <span class="err">NO DRIVER</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scene" id="s-problem2">
+    <div class="col" style="position:absolute;left:240px;top:330px">
+      <p class="eyebrow">The usual fix</p>
+      <p class="big"><span id="bca">Boot Camp Assistant?<span id="strike"></span></span></p>
+      <p class="big" id="nope"></p>
+    </div>
+  </div>
+
+  <div class="scene" id="s-brand">
+    <div class="center">
+      <div class="logo"><span id="logo1"></span><span class="cur" id="cur2"></span></div>
+      <div class="sub" id="sub1">Macbook Drivers for Windows</div>
+      <div class="tagline" id="tag1"></div>
+    </div>
+    <div class="loading" id="loading"></div>
+  </div>
+
+  <div class="scene" id="s-site">
+    <div id="cam"><iframe id="site" scrolling="no"></iframe><div id="caret"></div></div>
+    <div id="lscrim"></div>
+    <div class="dlp" id="dlp">
+      <div class="lab"><span>■ Download</span><span id="dl-pct">0%</span></div>
+      <div class="body">
+        <div class="file">BootCampESD.pkg</div>
+        <dl><dt>MODEL</dt><dd>MacBookAir8,1</dd><dt>PACKAGE</dt><dd>041-91736</dd><dt>FROM</dt><dd>swcdn.apple.com</dd><dt>SIZE</dt><dd>544 MB</dd></dl>
+        <div class="bar" id="dl-bar"></div>
+        <div class="src">Straight from Apple's servers. Nothing passes through MDfW.</div>
+      </div>
+    </div>
+    <div class="toast2" id="toast2">Copied</div>
+    <div id="scrim"></div>
+    <div class="stats" id="stats">
+      <div><b id="st-a">0</b><span>Supported models</span></div>
+      <div><b id="st-b">0</b><span>Driver packages</span></div>
+      <div><b>2006–2020</b><span>Intel Macs covered</span></div>
+    </div>
+  </div>
+
+  <div class="scene" id="s-langs">
+    <div class="bot" id="bot2" style="position:absolute;left:250px;top:250px;width:470px"></div>
+    <div class="bubble-wrap" id="bub2" style="left:820px;top:300px;width:960px">
+      <svg class="tail" viewBox="0 0 5 5"><rect fill="#f4f4f4" x="0" y="2" width="2" height="1"/><rect fill="#f4f4f4" x="2" y="1" width="2" height="3"/><rect fill="#f4f4f4" x="4" y="0" width="1" height="5"/></svg>
+      <div class="bubble"><p class="who">MDFW-BOT</p><p class="say"><span id="say2"></span><span class="cur" id="cur3"></span></p></div>
+    </div>
+    <div class="pick" id="pick">
+      <b>1. English <small>EN</small></b><b>2. Deutsch <small>DE</small></b>
+      <b>3. Français <small>FR</small></b><b>4. Español <small>ES</small></b>
+    </div>
+  </div>
+
+  <div class="scene" id="s-end">
+    <div class="words" id="words">
+      <div>Type.</div>
+      <div>Download.</div>
+      <div><span class="inv">Install.</span></div>
+    </div>
+    <div id="end-logo">
+      <div class="bot" id="bot3"></div>
+      <div class="txt">
+        <div class="logo">MDfW<span class="cur" id="cur4"></span></div>
+        <div class="sub">Macbook Drivers for Windows</div>
+        <div class="facts"><span><strong>112</strong> models</span><span><strong>26</strong> packages</span><span><strong>4</strong> languages</span><span><strong>0</strong> middlemen</span></div>
+      </div>
+      <p class="fine">Independent project. Not affiliated with Apple. Downloads come from Apple's own servers.</p>
+    </div>
+  </div>
+
+  <div class="cap" id="cap"><div class="lab"><span id="cap-a"></span><span id="cap-b"></span></div><div class="txt" id="cap-t"></div></div>
+  <div id="fx"></div>
+  <div id="flash"></div>
+  <div id="blackout"></div>
+</div>
+
+<script>
+const FPS = 60, DURATION = 62;
+const EVENTS = []; // audio cues, read by render.js
+const ev = (t, type, extra) => EVENTS.push(Object.assign({ t: +t.toFixed(4), type }, extra));
+const $ = id => document.getElementById(id);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, p) => a + (b - a) * p;
+const ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+const easeOut = p => 1 - Math.pow(1 - p, 3);
+const rand = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const steps = (p, n) => Math.floor(clamp(p) * n) / n;
+const vis = (el, on) => { const v = on ? "visible" : "hidden"; if (el.style.visibility !== v) el.style.visibility = v; };
+const txt = (el, s) => { if (el.textContent !== s) el.textContent = s; };
+const blinkOn = (t, period = 1) => (t % period) < period / 2;
+
+// ---------- typing schedules ----------
+function typing(text, t0, cps, seed, evType = "key") {
+  const times = []; let t = t0;
+  for (let i = 0; i < text.length; i++) {
+    times.push(t);
+    if (evType && text[i] !== " ") ev(t, evType, { i, n: rand(seed + i) });
+    t += (1 / cps) * (0.65 + 0.7 * rand(seed + i * 7.3));
+  }
+  return { text, times, end: t, at(tt) { let n = 0; while (n < times.length && times[n] <= tt) n++; return text.slice(0, n); } };
+}
+
+// ---------- robot ----------
+const BOT_SVG = `<svg viewBox="-2 0 30 30">
+<g class="body">
+<rect class="fg" x="11" y="2" width="2" height="3"/><rect class="fg bulb" x="10" y="0" width="4" height="2"/>
+<rect class="dm" x="2" y="8" width="2" height="5"/><rect class="dm" x="20" y="8" width="2" height="5"/>
+<rect class="fg" x="5" y="5" width="14" height="11"/><rect class="fg" x="4" y="6" width="16" height="9"/>
+<g class="eyes-n"><rect class="bg" x="7" y="8" width="3" height="3"/><rect class="bg" x="14" y="8" width="3" height="3"/></g>
+<g class="eyes-b"><rect class="bg" x="7" y="9" width="3" height="1"/><rect class="bg" x="14" y="9" width="3" height="1"/></g>
+<g class="eyes-h"><rect class="bg" x="7" y="10" width="1" height="1"/><rect class="bg" x="8" y="9" width="1" height="1"/><rect class="bg" x="9" y="10" width="1" height="1"/><rect class="bg" x="14" y="10" width="1" height="1"/><rect class="bg" x="15" y="9" width="1" height="1"/><rect class="bg" x="16" y="10" width="1" height="1"/></g>
+<rect class="dm" x="5" y="12" width="1" height="1"/><rect class="dm" x="18" y="12" width="1" height="1"/>
+<rect class="bg mouth-c" x="9" y="13" width="6" height="1"/>
+<g class="mouth-o"><rect class="bg" x="9" y="12" width="6" height="2"/><rect class="dm" x="10" y="13" width="4" height="1"/></g>
+<rect class="dm" x="10" y="16" width="4" height="1"/><rect class="fg" x="7" y="17" width="10" height="8"/><rect class="fg" x="6" y="18" width="12" height="6"/>
+<rect class="bg" x="8" y="19" width="8" height="4"/>
+<rect class="fg l1" x="9" y="20" width="1" height="1"/><rect class="fg l2" x="11" y="20" width="1" height="1"/><rect class="fg l3" x="13" y="20" width="1" height="1"/>
+<rect class="fa" x="9" y="21" width="6" height="1"/>
+<rect class="fg" x="5" y="18" width="1" height="2"/><rect class="fg" x="3" y="18" width="2" height="5"/><rect class="fg" x="2" y="23" width="3" height="2"/>
+<rect class="fg" x="18" y="18" width="1" height="2"/>
+<g class="arm-d"><rect class="fg" x="19" y="18" width="2" height="5"/><rect class="fg" x="19" y="23" width="3" height="2"/></g>
+<g class="arm-a"><rect class="fg" x="19" y="17" width="2" height="2"/><rect class="fg" x="21" y="15" width="2" height="2"/><rect class="fg" x="22" y="12" width="2" height="3"/><rect class="fg" x="22" y="9" width="3" height="3"/></g>
+<g class="arm-b"><rect class="fg" x="19" y="17" width="2" height="2"/><rect class="fg" x="21" y="16" width="2" height="2"/><rect class="fg" x="23" y="14" width="2" height="2"/><rect class="fg" x="24" y="11" width="3" height="3"/></g>
+<rect class="fg" x="8" y="25" width="3" height="2"/><rect class="fg" x="13" y="25" width="3" height="2"/><rect class="fg" x="7" y="27" width="4" height="1"/><rect class="fg" x="13" y="27" width="4" height="1"/>
+</g>
+<g class="fa"><rect x="5" y="29" width="1" height="1"/><rect x="7" y="29" width="1" height="1"/><rect x="9" y="29" width="1" height="1"/><rect x="11" y="29" width="1" height="1"/><rect x="13" y="29" width="1" height="1"/><rect x="15" y="29" width="1" height="1"/><rect x="17" y="29" width="1" height="1"/></g>
+</svg>`;
+function makeBot(el) {
+  el.innerHTML = BOT_SVG;
+  const q = s => el.querySelector(s);
+  return { el, svg: q("svg"), body: q(".body"), bulb: q(".bulb"), en: q(".eyes-n"), eb: q(".eyes-b"), eh: q(".eyes-h"),
+    mc: q(".mouth-c"), mo: q(".mouth-o"), l: [q(".l1"), q(".l2"), q(".l3")], ad: q(".arm-d"), aa: q(".arm-a"), ab: q(".arm-b") };
+}
+// lt: seconds since the robot appeared. opts: talking, happy, waveFrom (local time the wave starts)
+function poseBot(b, lt, o = {}) {
+  const boot = clamp(lt / .7);
+  b.svg.style.clipPath = boot < 1 ? `inset(${(1 - steps(boot, 10)) * 100}% 0 0 0)` : "";
+  vis(b.bulb, blinkOn(lt, 1));
+  b.l.forEach((l, i) => vis(l, blinkOn(lt + i * .4, 1.2)));
+  const cyc = (lt % 3.6) / 3.6, blink = cyc >= .92 && cyc < .96;
+  vis(b.en, !o.happy && !blink); vis(b.eb, !o.happy && blink); vis(b.eh, !!o.happy);
+  const mouthOpen = o.talking && ((lt / .11) | 0) % 2 === 0;
+  vis(b.mo, mouthOpen); vis(b.mc, !mouthOpen);
+  let frame = "d";
+  if (o.happy) frame = ((lt / .125) | 0) % 2 ? "b" : "a";
+  else if (o.waveFrom != null && lt >= o.waveFrom) {
+    const w = ((lt - o.waveFrom) % 3.2) / 3.2;
+    frame = w < .45 ? (((w / .09) | 0) % 2 ? "b" : "a") : "d";
+  }
+  vis(b.ad, frame === "d"); vis(b.aa, frame === "a"); vis(b.ab, frame === "b");
+  const hop = o.happy ? (((lt / .18) | 0) % 2 ? -6 : 0) : ((lt % 1.2) >= .6 ? -2.4 : 0);
+  b.el.style.transform = boot < 1 ? "" : `translateY(${hop}%)`;
+}
+
+// ---------- scene timeline (seconds; 120 bpm, one bar = 2 s) ----------
+const S = {
+  boot: [0, 6], problem: [6, 9.5], problem2: [9.5, 12], brand: [12, 16], site: [16, 52], langs: [52, 56], end: [56, 62],
+};
+const CUTS = [6, 9.5, 12, 52, 56, 58];
+CUTS.forEach(t => ev(t, "whoosh"));
+
+// boot
+[0.3, 0.6, 0.9, 1.75].forEach((t, i) => ev(t, "boot", { i }));
+const say1 = typing("Need Windows drivers for your Intel Mac?", 2.75, 26, 11, "blip");
+ev(2.0, "robot");
+// problem
+const pb1 = typing("Windows is on your Mac.", 6.15, 26, 23, "key");
+const DEVT = [7.5, 7.9, 8.3, 8.7];
+DEVT.forEach(t => { ev(t, "line"); ev(t + .2, "err"); });
+// problem 2
+ev(10.2, "strike");
+const nope = typing("You don't need it.", 10.75, 22, 41, "key");
+// brand
+const LOGO = "MDfW";
+[12.0, 12.125, 12.25, 12.375].forEach(t => ev(t, "stamp"));
+ev(12.0, "hit");
+ev(12.75, "boot", { i: 2 });
+const tag1 = typing("The exact driver package Apple built for your Mac.", 13.4, 34, 57, "key");
+const load1 = typing("> OPEN DRIVER LOOKUP_", 15.2, 30, 71, "key");
+ev(16.0, "crt_on");
+
+// site: what's typed into the real lookup field, and when
+const T1 = typing("MacBookAir8,1", 19.7, 6.2, 101, "key");
+ev(T1.times[T1.times.length - 1] + .05, "ok");
+const T2 = typing("Mac14,2", 32.75, 8, 131, "key");
+ev(T2.times[T2.times.length - 1] + .05, "warn");
+const T3 = typing("MacBook Pro 2017", 35.6, 10, 151, "key");
+ev(T3.times[9] + .05, "warn");
+function inputAt(t) {
+  if (t < 19.7) return "";
+  if (t < 32.1) return T1.at(t);
+  if (t < 35.3) return T2.at(t);
+  return T3.at(t);
+}
+const focusAt = t => t >= 19.2 && t < 38.6;
+const typingNow = t => [T1, T2, T3].some(T => t >= T.times[0] && t < T.end + .25);
+function tabAt(t) { return t < 44.75 ? "t-win" : t < 46.55 ? "t-mac" : "t-py"; }
+const CLICKS = [26.7, 32.1, 35.3, 40.7, 44.75, 46.55];
+CLICKS.forEach(t => ev(t, "click"));
+ev(27.1, "dl_start"); ev(30.2, "dl_done");
+ev(40.75, "copy");
+for (let i = 0; i < 20; i++) ev(48.9 + i * .06, "tick", { i });
+ev(48.6, "whoosh"); ev(38.2, "whoosh"); ev(42.6, "whoosh");
+
+// languages
+const LQ = [["en", "What language do we speak?"], ["de", "Welche Sprache sprechen wir?"], ["fr", "Quelle langue parlons-nous ?"], ["es", "¿Qué idioma hablamos?"]];
+const LT = LQ.map(([c, s], i) => typing(s, 52.35 + i * .92, 44, 200 + i * 37, i % 1 ? null : "blip"));
+const OK2 = typing("Great! Let's find your drivers.", 55.95, 44, 400, null);
+// end
+[56.0, 56.5, 57.0].forEach((t, i) => ev(t, "stamp", { big: i === 2 }));
+ev(58.0, "hit"); ev(58.0, "robot");
+ev(61.2, "crt_off");
+
+// ---------- iframe: the real site ----------
+const iframe = $("site"), cam = $("cam");
+let D, W, inp, field, lastVal = null, lastTab = null, lastHover = null, lastPress = null, CHIPS = [];
+const pr = el => { const r = (typeof el === "string" ? D.querySelector(el) : el).getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
+const center = r => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
+function fit(r, pad = 40, minW = 0) {
+  const w = Math.max(r.w + 2 * pad, (r.h + 2 * pad) * 16 / 9, minW);
+  const c = center(r);
+  return { x: c.x - w / 2, y: c.y - w * 9 / 32, w };
+}
+const at = (x, y, w) => ({ x, y, w });
+
+const ready = new Promise(res => {
+  localStorage.setItem("mdfw.lang", "en");
+  iframe.onload = async () => {
+    D = iframe.contentDocument; W = iframe.contentWindow;
+    const st = D.createElement("style");
+    st.textContent = `
+      html { scroll-behavior: auto !important; }
+      .field input { caret-color: transparent !important; }
+      .field.is-focus { border-color: var(--fg); } .field.is-focus .prompt { color: var(--fg); }
+      .btn-primary.is-hover { background-color: var(--bg); color: var(--fg); background-image: radial-gradient(circle at center, var(--faint) 1px, transparent 1.4px); background-size: 6px 6px; }
+      .is-press { transform: translateY(2px); }
+      .tab.is-hover { color: var(--fg); border-color: var(--dim); }
+      .clear.is-hover, .copy.is-hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+      .chip.sweep { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+      .toast { display: none !important; }`;
+    D.head.appendChild(st);
+    // fonts load lazily on first use; force every face now so no frame renders with a fallback
+    const FACES = ["400 36px VT323", "400 40px Doto", "900 40px Doto", "400 14px Silkscreen", "700 14px Silkscreen"];
+    await Promise.all(FACES.flatMap(f => [D.fonts.load(f, "AaÄé¿ñ0,"), document.fonts.load(f, "AaÄé¿ñ0,")]));
+    await D.fonts.ready; await document.fonts.ready;
+    inp = D.getElementById("model"); field = D.querySelector(".field");
+    CHIPS = [...D.querySelectorAll("#families .chip")];
+    res();
+  };
+  iframe.src = "/site/index.html";
+});
+
+// camera keyframes: [time, rect-or-fn]; consecutive keys are eased between, so a repeated rect is a hold
+let CAM = [];
+// built on the first site frame: the iframe has no layout while its scene is display:none
+function buildCamera() {
+  const tool = pr("#tool"), res = pr("#result");
+  const toolCam = at(tool.x - 330, tool.y - 40, 960);
+  const toolCam2 = at(tool.x - 318, tool.y - 26, 940);
+  const resCam = at(tool.x - 318, res.y - 200, 940);
+  const dlCam = at(tool.x - 340, res.y - 230, 980);
+  const findBox = () => { const h = pr("#find .sec-head"), w = pr("#find .ways"); return { x: w.x, y: h.y, w: w.w, h: w.y + w.h - h.y }; };
+  const findCam = () => fit(findBox(), 50);
+  const findCam2 = () => { const f = fit(findBox(), 50); return at(f.x + 40, f.y + 40, f.w - 80); };
+  const exCam = () => { const r = pr("#extract .sec-body"); return at(r.x - 140, r.y - 90, 1100); };
+  const exCam2 = () => { const r = pr("#extract .tabs"); return at(r.x - 140, r.y - 150, 1040); };
+  const modCam = () => { const r = pr("#models .wrap"); return at(r.x - 20, r.y + 10, r.w + 40); };
+  const modCam2 = () => { const r = pr("#models .wrap"); return at(r.x + 10, r.y + 520, r.w - 20); };
+  CAM = [
+    [16.0, at(0, -8, 1440)], [18.1, at(20, 4, 1400)],
+    [19.4, toolCam], [22.4, toolCam2],
+    [23.4, resCam], [25.0, resCam],
+    [27.0, dlCam], [30.4, at(dlCam.x + 8, dlCam.y + 6, 960)],
+    [31.4, toolCam2], [38.0, toolCam],
+    [39.3, findCam], [42.2, findCam2],
+    [43.2, exCam], [44.3, exCam], [45.0, exCam2], [48.0, exCam2],
+    [48.9, modCam], [52.0, modCam2],
+  ];
+}
+function camAt(t) {
+  if (t <= CAM[0][0]) return val(CAM[0][1]);
+  for (let i = 0; i < CAM.length - 1; i++) {
+    const [t0, a] = CAM[i], [t1, b] = CAM[i + 1];
+    if (t < t1) {
+      const A = val(a), B = val(b), p = ease((t - t0) / (t1 - t0));
+      const w = Math.exp(lerp(Math.log(A.w), Math.log(B.w), p));
+      const ca = { x: A.x + A.w / 2, y: A.y + A.w * 9 / 32 }, cb = { x: B.x + B.w / 2, y: B.y + B.w * 9 / 32 };
+      const cx = lerp(ca.x, cb.x, p), cy = lerp(ca.y, cb.y, p);
+      return { x: cx - w / 2, y: cy - w * 9 / 32, w };
+    }
+  }
+  return val(CAM[CAM.length - 1][1]);
+}
+const val = v => typeof v === "function" ? v() : v;
+
+// cursor: [time, target] pairs; target is a selector (its centre), a page point, or null (hidden)
+const el = s => () => center(pr(s));
+const off = (s, dx, dy) => () => { const c = center(pr(s)); return { x: c.x + dx, y: c.y + dy }; };
+const CUR = [
+  [24.4, null], [24.6, off("#result", 160, 40)], [25.9, el("#dl")], [30.9, el("#dl")], [32.0, el("#clear")], [34.6, el("#clear")],
+  [34.9, off("#clear", 30, 60)], [35.2, el("#clear")], [36.4, off("#clear", 90, 160)], [38.0, null],
+  [39.8, null], [39.9, off("#find .way:nth-child(2) pre", 120, 70)], [40.6, "#find .way:nth-child(2) .copy"], [42.4, "#find .way:nth-child(2) .copy"],
+  [43.5, off("#t-win", 60, 40)], [44.65, el("#t-mac")], [45.6, el("#t-mac")], [46.45, el("#t-py")], [47.7, off("#t-py", 40, 80)], [48.2, null],
+];
+function curAt(t) {
+  let prev = null;
+  for (let i = 0; i < CUR.length; i++) {
+    const [ti, tg] = CUR[i];
+    if (t < ti) {
+      if (!prev || prev[1] === null || tg === null) return prev && prev[1] !== null ? pt(prev[1]) : null;
+      const p = ease((t - prev[0]) / (ti - prev[0]));
+      const A = pt(prev[1]), B = pt(tg);
+      return { x: lerp(A.x, B.x, p), y: lerp(A.y, B.y, p) };
+    }
+    prev = CUR[i];
+  }
+  return null;
+}
+const pt = tg => typeof tg === "string" ? center(pr(tg)) : typeof tg === "function" ? tg() : tg;
+function hoverAt(t) {
+  if (t >= 25.75 && t < 30.95) return "#dl";
+  if (t >= 31.85 && t < 34.7) return "#clear";
+  if (t >= 35.1 && t < 35.6) return "#clear";
+  if (t >= 40.45 && t < 42.5) return "#find .way:nth-child(2) .copy";
+  if (t >= 44.5 && t < 45.7) return "#t-mac";
+  if (t >= 46.3 && t < 47.8) return "#t-py";
+  return null;
+}
+const pressAt = t => CLICKS.find(c => t >= c && t < c + .12);
+
+function drawSite(t, lt) {
+  if (!CAM.length) buildCamera();
+  // state of the real page
+  const v = inputAt(t);
+  if (v !== lastVal) { inp.value = v; W.onType(); lastVal = v; }
+  const tab = tabAt(t);
+  if (tab !== lastTab) { W.selectTab(D.getElementById(tab)); lastTab = tab; }
+  field.classList.toggle("is-focus", focusAt(t));
+  const hv = hoverAt(t);
+  if (hv !== lastHover) { D.querySelectorAll(".is-hover").forEach(e => e.classList.remove("is-hover")); if (hv) D.querySelector(hv).classList.add("is-hover"); lastHover = hv; }
+  const pc = pressAt(t), pe = pc ? hv : null;
+  if (pe !== lastPress) { D.querySelectorAll(".is-press").forEach(e => e.classList.remove("is-press")); if (pe) D.querySelector(pe).classList.add("is-press"); lastPress = pe; }
+  const sweep = (t - 48.9) / 2.2;
+  CHIPS.forEach((c, i) => c.classList.toggle("sweep", t >= 48.9 && i / CHIPS.length < sweep && !(sweep > 1.25)));
+  for (const a of D.getAnimations()) { a.pause(); a.currentTime = t * 1000; }
+
+  // camera
+  const c = camAt(t), s = 1920 / c.w;
+  cam.style.transform = `translate(${Math.round(-c.x * s)}px,${Math.round(-c.y * s)}px) scale(${s})`;
+
+  // fake block caret, so it blinks on our clock instead of Chrome's
+  const caret = $("caret");
+  if (focusAt(t)) {
+    const r = inp.getBoundingClientRect(), cs = W.getComputedStyle(inp);
+    const fs = parseFloat(cs.fontSize);
+    // the input's own scrollWidth at zero width is exactly the rendered text width
+    inp.style.width = "0px"; inp.style.flex = "none";
+    const textW = inp.scrollWidth;
+    inp.style.width = ""; inp.style.flex = "";
+    caret.style.left = (r.left + textW + 3) + "px";
+    caret.style.top = (r.top + r.height / 2 - fs * .36) + "px";
+    caret.style.width = (fs * .42) + "px"; caret.style.height = (fs * .72) + "px";
+    vis(caret, typingNow(t) || blinkOn(t, 1));
+  } else vis(caret, false);
+
+  // cursor in stage space, constant size
+  const cu = $("cursor_"), p = curAt(t);
+  if (p) {
+    const sx = (p.x - c.x) * s, sy = (p.y - c.y) * s, k = pc ? .86 : 1;
+    cu.style.transform = `translate(${Math.round(sx - 4)}px,${Math.round(sy - 4)}px) scale(${k})`;
+    vis(cu, true);
+  } else vis(cu, false);
+
+  // CRT power-on
+  const sc = $("s-site"), on = clamp(lt / .42);
+  if (on < 1) {
+    const q = steps(on, 7);
+    sc.style.transform = q < .5 ? `scale(${lerp(.02, 1, q * 2)}, .006)` : `scale(1, ${lerp(.006, 1, (q - .5) * 2)})`;
+    sc.style.filter = `brightness(${lerp(3, 1, q)})`;
+  } else { sc.style.transform = ""; sc.style.filter = ""; }
+
+  // darken the left column while the side caption / download panel sit there
+  $("lscrim").style.opacity = steps(clamp((t - 18.9) / .3), 5) * (1 - steps(clamp((t - 38.1) / .4), 5));
+
+  // download panel
+  const dlp = $("dlp"), dp = clamp((t - 27.1) / 3.1);
+  const dlOn = t >= 27.0 && t < 31.1;
+  vis(dlp, dlOn);
+  if (dlOn) {
+    const in_ = clamp((t - 27.0) / .2), outp = clamp((t - 30.9) / .2);
+    const cut = 1 - steps(in_, 5) + steps(outp, 5);
+    dlp.style.clipPath = cut <= 0 ? "" : `inset(0 0 ${cut * 100}% 0)`;
+    const q = Math.floor(steps(dp, 24) * 24), pct = Math.round(easeOut(q / 24) * 100);
+    $("dl-bar").innerHTML = "<b>" + "█".repeat(Math.round(pct / 100 * 21)) + "</b><i>" + "░".repeat(21 - Math.round(pct / 100 * 21)) + "</i>";
+    txt($("dl-pct"), dp >= 1 ? "Done ✓" : pct + "%");
+  }
+  vis($("toast2"), t >= 40.75 && t < 41.9);
+
+  // coverage counters
+  const stOn = t >= 48.8;
+  vis($("stats"), stOn);
+  $("scrim").style.opacity = steps(clamp((t - 48.7) / .3), 4);
+  if (stOn) {
+    const p2 = clamp((t - 48.9) / 1.2), q = steps(p2, 20);
+    const sp = steps(clamp((t - 48.8) / .2), 5);
+    $("stats").style.clipPath = sp >= 1 ? "" : `polygon(0 0, ${sp * 100}% 0, ${sp * 100}% 100%, 0 100%)`;
+    txt($("st-a"), String(Math.round(112 * easeOut(q))));
+    txt($("st-b"), String(Math.round(26 * easeOut(q))));
+  }
+}
+
+// ---------- captions ----------
+const CAPS = [
+  [19.0, 22.6, "01 · Look up", "Lookup", "Type your Mac's model ID.", "side"],
+  [22.6, 26.9, "02 · Match", "Found", "The exact package. Instantly.", "side"],
+  [31.2, 35.0, "Smart checks", "1/2", "Knows Apple silicon has no drivers.", "side"],
+  [35.0, 38.4, "Smart checks", "2/2", "Catches marketing names, too.", "side"],
+  [38.6, 42.6, "Step 1", "Find your model", "Three ways to find your ID."],
+  [42.6, 48.4, "Step 3", "Extract", "Unpack it on Windows, Mac or Python."],
+  [52.3, 55.9, "Built in", "EN · DE · FR · ES", "Speaks your language."],
+];
+const CAP_TYPE = CAPS.map((c, i) => typing(c[4], c[0] + .18, 60, 600 + i * 13, null));
+CAPS.forEach(c => ev(c[0], "cap"));
+function drawCaption(t) {
+  const cap = $("cap"), i = CAPS.findIndex(c => t >= c[0] && t < c[1]);
+  if (i < 0) return vis(cap, false);
+  const [t0, t1, a, b] = CAPS[i];
+  vis(cap, true);
+  cap.classList.toggle("side", CAPS[i][5] === "side");
+  const inP = steps(clamp((t - t0) / .18), 6), outP = steps(clamp((t - (t1 - .14)) / .14), 4);
+  const chained = i > 0 && CAPS[i - 1][1] === t0, nextChained = CAPS[i + 1] && CAPS[i + 1][0] === t1;
+  cap.style.clipPath = chained || inP >= 1 ? "" : `inset(0 ${(1 - inP) * 100}% 0 0)`;
+  cap.style.opacity = nextChained ? 1 : 1 - outP;
+  txt($("cap-a"), a); txt($("cap-b"), b);
+  txt($("cap-t"), CAP_TYPE[i].at(t) || " ");
+}
+
+// ---------- per-scene drawing ----------
+let bot1, bot2, bot3;
+function drawBoot(t) {
+  const lis = $("boot").children;
+  [0.3, 0.6, 0.9, 1.75].forEach((tt, i) => vis(lis[i], t >= tt));
+  const dots = n => ".".repeat(n);
+  const cp = steps(clamp((t - .6) / .25), 7) * 7;
+  txt($("boot-cat"), "READING APPLE CATALOG " + dots(cp) + (t >= .9 ? " OK" : ""));
+  const ip = clamp((t - .9) / .8);
+  txt($("boot-idx"), "INDEXING MODELS ....... " + String(Math.round(steps(ip, 16) * 112)).padStart(3, " "));
+  const bl = t - 2.0;
+  vis(bot1.el, bl >= 0);
+  if (bl >= 0) poseBot(bot1, bl, { talking: t >= say1.times[0] && t < say1.end, waveFrom: .7 });
+  vis($("bub1"), t >= 2.6);
+  txt($("say1"), say1.at(t));
+  vis($("cur1"), blinkOn(t, 1) || (t > say1.times[0] && t < say1.end));
+}
+function drawProblem(t) {
+  txt($("pb-1"), pb1.at(t));
+  [...$("devs").children].forEach((d, i) => { vis(d, t >= DEVT[i]); vis(d.firstElementChild, t >= DEVT[i] + .2); });
+}
+function drawProblem2(t) {
+  const sp = steps(clamp((t - 10.2) / .3), 10);
+  $("strike").style.width = `calc(${sp * 100}% + 20px)`;
+  vis($("strike"), sp > 0);
+  $("bca").style.color = t >= 10.2 ? "var(--dim)" : "";
+  const s = nope.at(t);
+  $("nope").innerHTML = s.length > 4 ? "You <span class=inv>" + s.slice(4) + "</span>" : s;
+}
+function drawBrand(t) {
+  const n = [12.0, 12.125, 12.25, 12.375].filter(x => t >= x).length;
+  txt($("logo1"), LOGO.slice(0, n));
+  vis($("cur2"), t < 12.4 || blinkOn(t - 12.4, 1.1));
+  vis($("sub1"), t >= 12.75);
+  txt($("tag1"), tag1.at(t));
+  txt($("loading"), load1.at(t));
+}
+function drawLangs(t) {
+  const lt = t - 52;
+  const idx = LT.findIndex((L, i) => t < (LT[i + 1] ? LT[i + 1].times[0] : 55.95));
+  const happy = t >= 55.95;
+  const cur = happy ? OK2 : LT[Math.max(0, idx)];
+  txt($("say2"), cur.at(t));
+  vis($("cur3"), blinkOn(t, 1) || t < 56);
+  poseBot(bot2, lt + 3, { talking: !happy, happy });
+  [...$("pick").children].forEach((b, i) => {
+    vis(b, t >= 52.1 + i * .08);
+    b.classList.toggle("on", happy ? i === 0 : i === idx);
+  });
+}
+function drawEnd(t) {
+  const ws = $("words").children;
+  [56.0, 56.5, 57.0].forEach((x, i) => vis(ws[i], t >= x && t < 58));
+  const lg = t >= 58;
+  vis($("end-logo"), lg);
+  if (lg) {
+    poseBot(bot3, t - 58, { waveFrom: .5 });
+    vis($("cur4"), blinkOn(t - 58, 1.1));
+  }
+}
+
+// ---------- frame ----------
+function renderAt(t) {
+  for (const [k, [a, b]] of Object.entries(S)) { const d = t >= a && t < b ? "block" : "none"; const e = $("s-" + k); if (e.style.display !== d) e.style.display = d; }
+  if (t < 6) drawBoot(t);
+  else if (t < 9.5) drawProblem(t);
+  else if (t < 12) drawProblem2(t);
+  else if (t < 16) drawBrand(t);
+  else if (t < 52) drawSite(t, t - 16);
+  else if (t < 56) drawLangs(t);
+  else drawEnd(t);
+  if (t < 16 || t >= 52) vis($("cursor_"), false);
+  drawCaption(t);
+
+  // inverted flash on hard cuts (two frames), fade in from black, CRT off at the end
+  const f = CUTS.concat([12, 16]).some(c => t >= c && t < c + 2 / FPS);
+  vis($("flash"), f);
+  const off = clamp((t - 61.2) / .5);
+  const stage = $("stage");
+  if (off > 0) {
+    const q = steps(off, 6);
+    stage.style.transform = q < .55 ? `scale(1, ${lerp(1, .006, q / .55)})` : `scale(${lerp(1, 0, (q - .55) / .45)}, .006)`;
+    stage.style.filter = `brightness(${lerp(1, 3, Math.min(1, q * 2))})`;
+  } else { stage.style.transform = ""; stage.style.filter = ""; }
+  $("blackout").style.opacity = t < .25 ? 1 - t / .25 : t > 61.75 ? 1 : 0;
+}
+
+// cursor lives on the stage so it keeps one size while the camera zooms
+document.getElementById("stage").insertAdjacentHTML("beforeend",
+  `<div id="cursor_" style="position:absolute;left:0;top:0;width:36px;height:54px;z-index:7;visibility:hidden;transform-origin:4px 4px">
+   <svg viewBox="0 0 12 18" style="width:100%;height:100%;display:block;shape-rendering:crispEdges">
+   <path fill="#000" d="M0 0h2v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v2h-4v1h1v2h1v2h-2v1h-2v-1h-1v-2h-1v-2h-1v1h-1v1h-2z"/>
+   <path fill="#f4f4f4" d="M1 2h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h-4v1h1v2h1v2h-2v-2h-1v-2h-1v-1h-1v1h-1v1h-1z"/></svg></div>`);
+bot1 = makeBot($("bot1")); bot2 = makeBot($("bot2")); bot3 = makeBot($("bot3"));
+
+window.COMP = { FPS, DURATION, EVENTS, ready, renderAt };
+</script>
+</body>
+</html>
